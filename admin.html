@@ -2,66 +2,67 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- PWA -->
+    <meta name="theme-color" content="#10b981">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <title>معهد النور - نظام الإدارة</title>
+    
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     
     <style>
         :root { --admin-primary: #10b981; --admin-hover: #059669; --bg: #f3f4f6; --card-bg: #ffffff; --text: #1f2937; }
-        body { margin: 0; font-family: 'Cairo', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px;}
-        .container { width: 100%; max-width: 800px; }
-        .card { background: var(--card-bg); border-radius: 16px; padding: 30px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); }
+        body { margin: 0; font-family: 'Cairo', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 15px;}
+        .container { width: 100%; max-width: 850px; }
+        .card { background: var(--card-bg); border-radius: 16px; padding: 25px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); margin-bottom: 15px;}
         
-        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f3f4f6; padding-bottom: 15px; margin-bottom: 25px; }
-        .header h2 { margin: 0; color: var(--admin-primary); font-size: 24px; font-weight: 700; display: flex; align-items: center; gap: 10px;}
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f3f4f6; padding-bottom: 15px; margin-bottom: 20px; }
+        .header h2 { margin: 0; color: var(--admin-primary); font-size: 22px; font-weight: 700; display: flex; align-items: center; gap: 10px;}
         .header img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
-        .logout-btn { background: #ef4444; color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-family: 'Cairo'; }
+        .logout-btn { background: #ef4444; color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-family: 'Cairo'; font-weight: bold;}
         
-        /* التبويبات */
-        .tabs { display: flex; gap: 8px; margin-bottom: 25px; flex-wrap: wrap;}
-        .tab-btn { flex: 1; padding: 12px; border: none; background: #e5e7eb; color: #4b5563; border-radius: 10px; font-family: 'Cairo'; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.3s; min-width: 120px;}
+        .tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap;}
+        .tab-btn { flex: 1; padding: 10px; border: none; background: #e5e7eb; color: #4b5563; border-radius: 10px; font-family: 'Cairo'; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.3s; min-width: 110px;}
         .tab-btn.active { background: var(--admin-primary); color: white; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2); }
-        
-        .tab-content { display: none; animation: fadeIn 0.4s; }
+        .tab-content { display: none; animation: fadeIn 0.3s; }
         .tab-content.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* الفورم */
-        input, textarea { width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px; font-family: 'Cairo'; box-sizing: border-box; background: #f9fafb; transition: 0.3s; }
-        input:focus, textarea:focus { outline: none; border-color: var(--admin-primary); }
+        input, textarea, select { width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px; font-family: 'Cairo'; box-sizing: border-box; background: #f9fafb; transition: 0.3s; }
+        input:focus, textarea:focus, select:focus { outline: none; border-color: var(--admin-primary); }
         .flex-row { display: flex; gap: 10px; margin-bottom: 15px; }
-        .flex-row input { margin-bottom: 0; }
+        .flex-row input, .flex-row select { margin-bottom: 0; }
         
         .ref-input { background: #ecfdf5 !important; border-color: #34d399 !important; color: #065f46; font-weight: bold; font-size: 18px; text-align: center; }
+        .section-title { font-size: 14px; color: #6b7280; margin-bottom: 5px; font-weight: bold; }
         
-        .btn-main { width: 100%; padding: 14px; border: none; border-radius: 8px; background: var(--admin-primary); color: white; font-size: 16px; font-weight: bold; cursor: pointer; font-family: 'Cairo'; transition: 0.3s; }
+        .btn-main { width: 100%; padding: 14px; border: none; border-radius: 8px; background: var(--admin-primary); color: white; font-size: 15px; font-weight: bold; cursor: pointer; font-family: 'Cairo'; transition: 0.3s; }
         .btn-main:hover { background: var(--admin-hover); }
-        .btn-danger { background: #ef4444; color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-family: 'Cairo'; }
+        .btn-danger { background: #ef4444; color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-family: 'Cairo'; font-weight: bold;}
 
-        /* تصميم كروت الملاحظات */
-        .note-card { background: #fffbeb; border: 1px solid #fcd34d; padding: 18px; border-radius: 12px; margin-bottom: 15px; }
-        .note-card h4 { margin: 0 0 10px 0; color: #b45309; font-size: 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #fde68a; padding-bottom: 10px;}
-        .note-card p { margin: 0; color: #1f2937; font-size: 16px; font-weight: 600;}
-        .note-card .info-text { font-size: 13px; color: #92400e; font-weight: normal; margin-right: 10px; }
-        .btn-clear-note { background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-family: 'Cairo'; font-size: 13px; }
-        .btn-clear-note:hover { background: #dc2626; }
-
-        /* قائمة الطلاب أو المدراء */
-        .search-bar { position: relative; margin-bottom: 20px; }
-        .students-grid { display: grid; gap: 15px; max-height: 400px; overflow-y: auto; padding-right: 5px; }
-        .student-item { display: flex; justify-content: space-between; align-items: center; background: #f9fafb; border: 1px solid #e5e7eb; padding: 15px; border-radius: 10px; }
+        /* تنسيق الجداول والقوائم */
+        .students-grid { display: grid; gap: 15px; max-height: 500px; overflow-y: auto; padding-right: 5px; }
+        .student-item { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; background: #f9fafb; border: 1px solid #e5e7eb; padding: 15px; border-radius: 10px; gap: 10px;}
         .student-item .info h4 { margin: 0 0 5px 0; color: #111827; }
         .student-item .info p { margin: 0; font-size: 13px; color: #6b7280; }
         .student-item .actions button { padding: 6px 12px; font-size: 13px; margin-right: 5px; }
         
+        /* كروت الملاحظات */
+        .note-card { background: #fffbeb; border: 1px solid #fcd34d; padding: 15px; border-radius: 12px; margin-bottom: 15px; }
+        .note-card h4 { margin: 0 0 10px 0; color: #b45309; font-size: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #fde68a; padding-bottom: 10px;}
+        .btn-clear-note { background: #ef4444; color: white; border: none; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-family: 'Cairo'; font-size: 12px; }
+
         .msg { text-align: center; font-size: 14px; margin-bottom: 15px; font-weight: bold;}
         .error { color: #dc2626; }
         .success { color: #059669; }
         
         #loginSection { max-width: 400px; margin: 0 auto; text-align: center; }
         #adminDashboard { display: none; }
+        
+        .dev-signature { text-align: center; margin-top: 10px; font-size: 14px; color: #6b7280; width: 100%;}
+        .dev-signature a { color: #25D366; text-decoration: none; font-weight: 700; transition: 0.3s; display: inline-flex; align-items: center; gap: 5px; }
     </style>
 </head>
 <body>
@@ -69,7 +70,6 @@
 <div class="container">
     <div class="card">
         
-        <!-- تسجيل الدخول الذكي -->
         <div id="loginSection">
             <h2 style="color: var(--admin-primary); margin-bottom: 20px;">تسجيل الدخول للإدارة</h2>
             <input type="text" id="adminUser" placeholder="اسم المستخدم">
@@ -80,17 +80,16 @@
 
         <div id="adminDashboard">
             <div class="header">
-                <h2><img id="adminLogoHeader" src="https://via.placeholder.com/40" alt="لوجو"> معهد النور - الإدارة</h2>
+                <h2><img id="adminLogoHeader" src="https://via.placeholder.com/40" alt="لوجو"> إدارة المعهد</h2>
                 <button class="logout-btn" onclick="logout()">خروج</button>
             </div>
 
-            <!-- التبويبات (تم إضافة تبويب الحسابات) -->
             <div class="tabs">
                 <button class="tab-btn active" onclick="switchTab('addTab')" id="btn-addTab">طالب جديد / تعديل</button>
                 <button class="tab-btn" onclick="switchTab('listTab'); fetchAllStudents();" id="btn-listTab">سجل الطلاب</button>
                 <button class="tab-btn" onclick="switchTab('notesTab'); fetchAllStudents();" id="btn-notesTab" style="background:#f59e0b; color:white;">رسائل الأولياء 📩</button>
-                <button class="tab-btn" onclick="switchTab('accountsTab'); fetchAllAdmins();" id="btn-accountsTab" style="background:#8b5cf6; color:white;">إدارة الحسابات 👥</button>
-                <button class="tab-btn" onclick="switchTab('settingsTab')" id="btn-settingsTab" style="background:#3b82f6; color:white;">الإعدادات</button>
+                <button class="tab-btn" onclick="switchTab('accountsTab'); fetchAllAdmins();" id="btn-accountsTab" style="background:#8b5cf6; color:white;">الحسابات 👥</button>
+                <button class="tab-btn" onclick="switchTab('settingsTab')" id="btn-settingsTab" style="background:#3b82f6; color:white;">الإعدادات ⚙️</button>
             </div>
 
             <!-- 1. الإضافة والتعديل -->
@@ -100,12 +99,30 @@
                     <button class="btn-main" style="width: auto; padding: 0 20px;" onclick="prepareNewStudent()">طالب جديد ➕</button>
                 </div>
 
-                <input type="text" id="studentName" placeholder="اسم الطالب">
-                <label style="font-size: 13px; color: #6b7280; display: block; margin-bottom: 5px;">صورة الطالب (اختياري - أقل من 1 ميغا):</label>
+                <div class="flex-row">
+                    <input type="text" id="studentName" placeholder="اسم الطالب الرباعي (مطلوب)">
+                    <input type="text" id="studentClass" placeholder="الصف / الشعبة (مثال: التاسع)">
+                </div>
+                
+                <div class="section-title">الوضع المالي (الأقساط):</div>
+                <div class="flex-row">
+                    <input type="number" id="feeTotal" placeholder="القسط الإجمالي" oninput="calcFee()">
+                    <input type="number" id="feePaid" placeholder="المبلغ المدفوع" oninput="calcFee()">
+                    <input type="number" id="feeRemaining" placeholder="المتبقي (تلقائي)" readonly style="background:#e5e7eb; color:#dc2626; font-weight:bold;">
+                </div>
+
+                <div class="section-title">سجل الحضور والغياب السريع:</div>
+                <div class="flex-row">
+                    <input type="number" id="daysPresent" placeholder="أيام الحضور">
+                    <input type="number" id="daysAbsent" placeholder="أيام الغياب">
+                </div>
+
+                <div class="section-title">صورة الطالب (اختياري - أقل من 1 ميغا):</div>
                 <input type="file" id="studentPhoto" accept="image/*">
-                <textarea id="studentInfo" rows="2" placeholder="المعلومات الشخصية (العمر، الصف، الهاتف...)"></textarea>
+                
+                <textarea id="studentInfo" rows="2" placeholder="المعلومات الشخصية (العمر، الهاتف...)"></textarea>
                 <textarea id="studentGrades" rows="2" placeholder="العلامات والتقييم الأكاديمي"></textarea>
-                <textarea id="studentBehavior" rows="2" placeholder="ملاحظات السلوك والغياب"></textarea>
+                <textarea id="studentBehavior" rows="2" placeholder="ملاحظات الإدارة الإضافية"></textarea>
                 
                 <div class="flex-row">
                     <button class="btn-main" style="flex: 2;" onclick="saveStudent()">حفظ البيانات ✔️</button>
@@ -114,14 +131,16 @@
                 <div id="saveMsg" class="msg"></div>
             </div>
 
-            <!-- 2. قائمة الطلاب -->
+            <!-- 2. قائمة الطلاب والفلاتر -->
             <div id="listTab" class="tab-content">
-                <div class="search-bar">
-                    <input type="text" id="searchInput" oninput="filterStudents()" placeholder="🔍 ابحث بالرقم المرجعي أو بأول أحرف من الاسم...">
+                <div class="flex-row">
+                    <input type="text" id="searchInput" oninput="filterStudents()" placeholder="🔍 ابحث بالاسم أو الرقم..." style="flex:2;">
+                    <select id="classFilter" onchange="filterStudents()" style="flex:1;">
+                        <option value="">كل الصفوف</option>
+                        <!-- سيتم تعبئتها برمجياً -->
+                    </select>
                 </div>
-                <div class="students-grid" id="studentsList">
-                    <p style="text-align: center; color: #6b7280;">جاري تحميل البيانات...</p>
-                </div>
+                <div class="students-grid" id="studentsList"></div>
             </div>
 
             <!-- 3. رسائل الأولياء -->
@@ -130,38 +149,42 @@
                 <div id="notesListContainer" class="students-grid"></div>
             </div>
 
-            <!-- 4. إدارة حسابات النظام (الخانة الجديدة) -->
+            <!-- 4. الحسابات -->
             <div id="accountsTab" class="tab-content">
-                <h3 style="color:#1f2937; margin-top:0;">إدارة مدراء النظام (إداري مشترك)</h3>
-                <div style="background: #f9fafb; padding: 20px; border-radius: 10px; border: 1px solid #e5e7eb; margin-bottom: 20px;">
-                    <label style="font-size: 14px; color: #4b5563; display: block; margin-bottom: 10px;">إضافة إداري جديد (أو تعديل كلمة مرور إداري موجود بنفس الاسم):</label>
-                    <div class="flex-row">
-                        <input type="text" id="newAdminUser" placeholder="اسم المستخدم (مثال: admin_ali)">
-                        <input type="text" id="newAdminPass" placeholder="كلمة المرور">
-                    </div>
-                    <button class="btn-main" onclick="saveAdminAccount()" style="background:#8b5cf6;">حفظ حساب الإدارة</button>
-                    <div id="adminAccountMsg" class="msg"></div>
+                <h3 style="color:#1f2937; margin-top:0;">إضافة إداري جديد / تعديل</h3>
+                <div class="flex-row">
+                    <input type="text" id="newAdminUser" placeholder="اسم المستخدم">
+                    <input type="text" id="newAdminPass" placeholder="كلمة المرور">
                 </div>
-
-                <h4 style="color:#1f2937;">المسؤولين الحاليين:</h4>
-                <div class="students-grid" id="adminsListContainer">
-                    <p style="text-align: center; color: #6b7280;">جاري التحميل...</p>
-                </div>
+                <button class="btn-main" onclick="saveAdminAccount()" style="background:#8b5cf6;">حفظ الحساب</button>
+                <div id="adminAccountMsg" class="msg"></div>
+                <hr style="margin:20px 0; border:1px solid #e5e7eb;">
+                <div class="students-grid" id="adminsListContainer"></div>
             </div>
 
-            <!-- 5. تبويب الإعدادات -->
+            <!-- 5. الإعدادات والإعلانات -->
             <div id="settingsTab" class="tab-content">
-                <h3 style="color:#1f2937; margin-top:0;">إعدادات الموقع العامة</h3>
+                
+                <div style="background: #fef3c7; padding: 20px; border-radius: 10px; border: 1px solid #fbbf24; margin-bottom: 20px;">
+                    <label class="section-title">لوحة الإعلانات العامة (تظهر لجميع الأهالي):</label>
+                    <textarea id="generalAnnouncement" rows="2" placeholder="اكتب إعلاناً هاماً هنا (مثال: عطلة غداً)... اتركها فارغة لإلغاء الإعلان."></textarea>
+                    <button class="btn-main" onclick="saveSettings()" style="background:#f59e0b;">نشر الإعلان 📢</button>
+                </div>
+
                 <div style="background: #f9fafb; padding: 20px; border-radius: 10px; border: 1px solid #e5e7eb; text-align: center;">
                     <img id="logoPreview" src="https://via.placeholder.com/100" style="width:100px; height:100px; border-radius:50%; margin-bottom:15px; object-fit:cover; border:3px solid var(--admin-primary);">
-                    <label style="font-size: 14px; color: #4b5563; display: block; margin-bottom: 10px;">اختر لوجو المعهد الجديد (سيظهر في صفحة الطلاب والإدارة)</label>
+                    <label class="section-title" style="display:block; margin-bottom: 10px;">تغيير لوجو المعهد:</label>
                     <input type="file" id="siteLogoInput" accept="image/*" style="background:white;">
-                    <button class="btn-main" onclick="saveSiteLogo()" style="background:#3b82f6;">حفظ اللوجو وتحديث الموقع</button>
-                    <div id="logoMsg" class="msg"></div>
+                    <button class="btn-main" onclick="saveSettings()" style="background:#3b82f6;">حفظ اللوجو وتحديث الموقع</button>
                 </div>
+                <div id="settingsMsg" class="msg"></div>
             </div>
 
         </div>
+    </div>
+    
+    <div class="dev-signature">
+        برمجة وتصميم: <a href="https://wa.me/963954571163" target="_blank">محمود مغلاج 💬</a>
     </div>
 </div>
 
@@ -181,12 +204,25 @@
     let currentPhotoUrl = ""; 
     let allStudentsData = []; 
 
-    // جلب اللوجو
-    function loadSiteLogo() {
+    // حساب المتبقي من القسط فورياً
+    function calcFee() {
+        const total = Number(document.getElementById('feeTotal').value) || 0;
+        const paid = Number(document.getElementById('feePaid').value) || 0;
+        document.getElementById('feeRemaining').value = (total - paid) > 0 ? (total - paid) : 0;
+    }
+
+    // جلب الإعدادات
+    function loadSettings() {
         db.collection("settings").doc("general").get().then((doc) => {
-            if(doc.exists && doc.data().logoUrl) {
-                document.getElementById('adminLogoHeader').src = doc.data().logoUrl;
-                document.getElementById('logoPreview').src = doc.data().logoUrl;
+            if(doc.exists) {
+                const data = doc.data();
+                if(data.logoUrl) {
+                    document.getElementById('adminLogoHeader').src = data.logoUrl;
+                    document.getElementById('logoPreview').src = data.logoUrl;
+                }
+                if(data.announcement) {
+                    document.getElementById('generalAnnouncement').value = data.announcement;
+                }
             }
         });
     }
@@ -198,298 +234,216 @@
         document.getElementById('btn-' + tabId).classList.add('active');
     }
 
-    // ==========================================
-    // نظام تسجيل الدخول الذكي وإدارة الحسابات
-    // ==========================================
     function adminLogin() {
         const user = document.getElementById('adminUser').value.trim();
         const pass = document.getElementById('adminPass').value.trim();
         const msgDiv = document.getElementById('loginMsg');
-        
         if (!user || !pass) { msgDiv.className = "msg error"; msgDiv.innerText = "الرجاء إدخال البيانات!"; return; }
 
         msgDiv.className = "msg"; msgDiv.style.color = "#3b82f6"; msgDiv.innerText = "جاري التحقق...";
 
-        // التحقق من قاعدة بيانات المدراء
         db.collection("admins").doc(user).get().then(doc => {
-            if (doc.exists && doc.data().password === pass) {
-                loginSuccess();
-            } else {
-                // إذا لم نجد المستخدم، نتحقق هل قاعدة بيانات المدراء فارغة تماماً لنسمح بالدخول الافتراضي (admin/123456)
+            if (doc.exists && doc.data().password === pass) { loginSuccess(); } 
+            else {
                 db.collection("admins").limit(1).get().then(snapshot => {
-                    if (snapshot.empty && user === "admin" && pass === "123456") {
-                        loginSuccess();
-                    } else {
-                        msgDiv.className = "msg error"; msgDiv.innerText = "اسم المستخدم أو كلمة المرور غير صحيحة!";
-                    }
+                    if (snapshot.empty && user === "admin" && pass === "123456") { loginSuccess(); } 
+                    else { msgDiv.className = "msg error"; msgDiv.innerText = "خطأ في البيانات!"; }
                 });
             }
-        }).catch(err => {
-            msgDiv.className = "msg error"; msgDiv.innerText = "خطأ في الاتصال!";
         });
     }
 
     function loginSuccess() {
         document.getElementById('loginSection').style.display = 'none';
         document.getElementById('adminDashboard').style.display = 'block';
-        loadSiteLogo();
+        loadSettings();
         prepareNewStudent();
     }
 
-    function logout() {
-        document.getElementById('adminDashboard').style.display = 'none';
-        document.getElementById('loginSection').style.display = 'block';
-        document.getElementById('adminUser').value = '';
-        document.getElementById('adminPass').value = '';
-        document.getElementById('loginMsg').innerText = '';
-    }
+    function logout() { location.reload(); } // أسهل طريقة للخروج وتصفير البيانات
 
-    // إضافة أو تعديل مدير
+    // إدارة الحسابات
     function saveAdminAccount() {
         const u = document.getElementById('newAdminUser').value.trim();
         const p = document.getElementById('newAdminPass').value.trim();
         const msgDiv = document.getElementById('adminAccountMsg');
-        
-        if(!u || !p) { msgDiv.className='msg error'; msgDiv.innerText='الاسم وكلمة المرور مطلوبان!'; return; }
-        
-        msgDiv.className='msg'; msgDiv.style.color="#3b82f6"; msgDiv.innerText='جاري الحفظ...';
-
-        db.collection("admins").doc(u).set({
-            username: u,
-            password: p,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        }).then(() => {
-            msgDiv.className='msg success'; msgDiv.innerText='تم حفظ حساب الإدارة بنجاح!';
-            document.getElementById('newAdminUser').value = '';
-            document.getElementById('newAdminPass').value = '';
+        if(!u || !p) return;
+        db.collection("admins").doc(u).set({ username: u, password: p }).then(() => {
+            msgDiv.className='msg success'; msgDiv.innerText='تم الحفظ!';
+            document.getElementById('newAdminUser').value = ''; document.getElementById('newAdminPass').value = '';
             fetchAllAdmins();
-        }).catch(e => {
-            msgDiv.className='msg error'; msgDiv.innerText='خطأ: ' + e.message;
         });
     }
 
-    // جلب وعرض كل المدراء
     function fetchAllAdmins() {
         const listDiv = document.getElementById('adminsListContainer');
         db.collection("admins").get().then(snapshot => {
             listDiv.innerHTML = '';
-            if(snapshot.empty) {
-                listDiv.innerHTML = '<p style="color:#6b7280; font-size:14px; text-align:center;">لم تقم بإضافة أي مدير. النظام حالياً يستخدم الدخول الافتراضي (admin / 123456).</p>';
-                return;
-            }
             snapshot.forEach(doc => {
                 const data = doc.data();
-                const div = document.createElement('div');
-                div.className = 'student-item';
-                div.innerHTML = `
-                    <div class="info">
-                        <h4 style="color:#8b5cf6;">👤 ${data.username}</h4>
-                        <p>كلمة المرور: <strong>${data.password}</strong></p>
-                    </div>
-                    <div class="actions">
-                        <button class="btn-danger" onclick="deleteAdmin('${doc.id}')">حذف الإداري 🗑️</button>
-                    </div>
-                `;
-                listDiv.appendChild(div);
+                listDiv.innerHTML += `
+                    <div class="student-item">
+                        <div class="info"><h4 style="color:#8b5cf6;">👤 ${data.username}</h4><p>المرور: ${data.password}</p></div>
+                        <button class="btn-danger" style="width:auto;" onclick="deleteAdmin('${doc.id}')">حذف 🗑️</button>
+                    </div>`;
             });
         });
     }
+    function deleteAdmin(id) { if(confirm("حذف الإداري؟")) db.collection("admins").doc(id).delete().then(fetchAllAdmins); }
 
-    // حذف مدير
-    function deleteAdmin(id) {
-        if(confirm(`هل أنت متأكد من حذف الحساب الإداري (${id})؟ لا يمكن التراجع عن ذلك.`)) {
-            db.collection("admins").doc(id).delete().then(() => {
-                fetchAllAdmins();
-            });
-        }
-    }
-    // ==========================================
-
-
-    // تحضير طالب جديد
+    // تحضير طالب
     function prepareNewStudent() {
         document.getElementById('studentRef').value = Math.floor(100000 + Math.random() * 900000);
-        document.getElementById('studentName').value = '';
-        document.getElementById('studentInfo').value = '';
-        document.getElementById('studentGrades').value = '';
-        document.getElementById('studentBehavior').value = '';
-        document.getElementById('studentPhoto').value = ''; 
-        currentPhotoUrl = "";
-        document.getElementById('saveMsg').innerText = '';
+        document.querySelectorAll('#addTab input:not(.ref-input), #addTab textarea').forEach(el => el.value = '');
+        currentPhotoUrl = ""; document.getElementById('saveMsg').innerText = '';
         switchTab('addTab');
     }
 
     function getBase64(file) {
        return new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.readAsDataURL(file);
-          reader.onload = () => resolve(reader.result);
-          reader.onerror = error => reject(error);
+          const reader = new FileReader(); reader.readAsDataURL(file);
+          reader.onload = () => resolve(reader.result); reader.onerror = error => reject(error);
        });
     }
 
-    async function saveSiteLogo() {
+    async function saveSettings() {
         const file = document.getElementById('siteLogoInput').files[0];
-        const msgDiv = document.getElementById('logoMsg');
-        if(!file) { msgDiv.className='msg error'; msgDiv.innerText="اختر صورة اللوجو أولاً."; return;}
-        if(file.size > 800000) { msgDiv.className='msg error'; msgDiv.innerText="اللوجو كبير جداً، اختر صورة أصغر."; return;}
-
-        msgDiv.className='msg'; msgDiv.innerText="جاري حفظ اللوجو...";
+        const ann = document.getElementById('generalAnnouncement').value.trim();
+        const msgDiv = document.getElementById('settingsMsg');
+        msgDiv.className='msg'; msgDiv.innerText="جاري الحفظ...";
+        
+        let updateData = { announcement: ann };
         try {
-            const base64 = await getBase64(file);
-            await db.collection("settings").doc("general").set({ logoUrl: base64 }, {merge:true});
-            document.getElementById('adminLogoHeader').src = base64;
-            document.getElementById('logoPreview').src = base64;
+            if(file) {
+                if(file.size > 800000) { msgDiv.className='msg error'; msgDiv.innerText="اللوجو كبير جداً."; return;}
+                updateData.logoUrl = await getBase64(file);
+                document.getElementById('adminLogoHeader').src = updateData.logoUrl;
+                document.getElementById('logoPreview').src = updateData.logoUrl;
+            }
+            await db.collection("settings").doc("general").set(updateData, {merge:true});
             document.getElementById('siteLogoInput').value = '';
-            msgDiv.className='msg success'; msgDiv.innerText="تم تغيير اللوجو بنجاح!";
-        } catch(e) {
-            msgDiv.className='msg error'; msgDiv.innerText="خطأ: " + e.message;
-        }
+            msgDiv.className='msg success'; msgDiv.innerText="تم حفظ الإعدادات بنجاح!";
+        } catch(e) { msgDiv.className='msg error'; msgDiv.innerText="خطأ: " + e.message; }
     }
 
     async function saveStudent() {
-        const refNumber = document.getElementById('studentRef').value.trim();
+        const ref = document.getElementById('studentRef').value.trim();
         const name = document.getElementById('studentName').value.trim();
-        const info = document.getElementById('studentInfo').value.trim();
-        const grades = document.getElementById('studentGrades').value.trim();
-        const behavior = document.getElementById('studentBehavior').value.trim();
-        const photoFile = document.getElementById('studentPhoto').files[0];
+        const sClass = document.getElementById('studentClass').value.trim();
         const msgDiv = document.getElementById('saveMsg');
-
-        if (!name) { msgDiv.className = 'msg error'; msgDiv.innerText = "اسم الطالب مطلوب!"; return; }
+        if (!name) { msgDiv.className = 'msg error'; msgDiv.innerText = "الاسم مطلوب!"; return; }
 
         msgDiv.className = 'msg'; msgDiv.innerText = "جاري الحفظ...";
         let finalPhotoUrl = currentPhotoUrl; 
+        const file = document.getElementById('studentPhoto').files[0];
 
         try {
-            if (photoFile) {
-                if (photoFile.size > 1000000) { msgDiv.className = 'msg error'; msgDiv.innerText = "الصورة كبيرة جداً."; return; }
-                finalPhotoUrl = await getBase64(photoFile);
+            if (file) {
+                if (file.size > 1000000) { msgDiv.className = 'msg error'; msgDiv.innerText = "الصورة كبيرة."; return; }
+                finalPhotoUrl = await getBase64(file);
             }
 
-            await db.collection("students").doc(refNumber).set({
-                name: name, info: info, grades: grades, behavior: behavior, photoUrl: finalPhotoUrl,
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            await db.collection("students").doc(ref).set({
+                name: name, studentClass: sClass, 
+                info: document.getElementById('studentInfo').value.trim(), 
+                grades: document.getElementById('studentGrades').value.trim(), 
+                behavior: document.getElementById('studentBehavior').value.trim(),
+                feeTotal: document.getElementById('feeTotal').value,
+                feePaid: document.getElementById('feePaid').value,
+                daysPresent: document.getElementById('daysPresent').value,
+                daysAbsent: document.getElementById('daysAbsent').value,
+                photoUrl: finalPhotoUrl, updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             }, { merge: true }); 
 
-            msgDiv.className = 'msg success'; msgDiv.innerText = "تم الحفظ بنجاح!";
-            fetchAllStudents(); 
-            setTimeout(prepareNewStudent, 2000); 
-
-        } catch (error) {
-            msgDiv.className = 'msg error'; msgDiv.innerText = "خطأ: " + error.message;
-        }
+            msgDiv.className = 'msg success'; msgDiv.innerText = "تم الحفظ!";
+            fetchAllStudents(); setTimeout(prepareNewStudent, 1500); 
+        } catch (e) { msgDiv.className = 'msg error'; msgDiv.innerText = "خطأ: " + e.message; }
     }
 
     async function fetchAllStudents() {
-        const listDiv = document.getElementById('studentsList');
-        try {
-            const snapshot = await db.collection("students").get();
+        db.collection("students").get().then(snapshot => {
             allStudentsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            renderStudentsList(allStudentsData);
+            
+            // تعبئة فلتر الصفوف
+            const classes = [...new Set(allStudentsData.map(s => s.studentClass).filter(Boolean))];
+            const filterSel = document.getElementById('classFilter');
+            filterSel.innerHTML = '<option value="">كل الصفوف</option>' + classes.map(c => `<option value="${c}">${c}</option>`).join('');
+            
+            filterStudents();
             renderParentNotes();
-        } catch(error) {
-            listDiv.innerHTML = `<p style="color:red; text-align:center;">حدث خطأ في جلب البيانات</p>`;
-        }
+        });
     }
 
-    function renderStudentsList(studentsArray) {
-        const listDiv = document.getElementById('studentsList');
-        listDiv.innerHTML = '';
-        if(studentsArray.length === 0) { listDiv.innerHTML = `<p style="text-align: center; color: #6b7280;">لا يوجد طلاب مطابقين.</p>`; return; }
-
-        studentsArray.forEach(student => {
-            const noteIcon = student.parentNote ? `<span title="توجد رسالة" style="background:#fde68a; padding:2px 6px; border-radius:5px; margin-right:5px; font-size:12px;">📩 رسالة جديدة</span>` : '';
+    function renderStudentsList(arr) {
+        const list = document.getElementById('studentsList'); list.innerHTML = '';
+        if(arr.length === 0) { list.innerHTML = `<p style="text-align: center; color: #6b7280;">لا يوجد طلاب.</p>`; return; }
+        
+        arr.forEach(s => {
+            const noteIcon = s.parentNote ? `<span title="رسالة جديدة" style="background:#fde68a; font-size:11px; padding:2px 5px; border-radius:4px;">📩 رسالة</span>` : '';
+            const remain = (Number(s.feeTotal)||0) - (Number(s.feePaid)||0);
+            const feeStatus = remain > 0 ? `<span style="color:#ef4444; font-size:12px;">(ذمة: ${remain})</span>` : `<span style="color:#10b981; font-size:12px;">(خالص)</span>`;
             
-            const div = document.createElement('div');
-            div.className = 'student-item';
-            div.innerHTML = `
-                <div class="info">
-                    <h4>${student.name} ${noteIcon}</h4>
-                    <p>الرقم المرجعي: <strong>${student.id}</strong></p>
-                </div>
-                <div class="actions">
-                    <button class="btn-main" style="width:auto;" onclick="editStudentFromList('${student.id}')">تعديل ✏️</button>
-                    <button class="btn-danger" onclick="deleteStudentFromList('${student.id}', '${student.name}')">حذف 🗑️</button>
-                </div>
-            `;
-            listDiv.appendChild(div);
+            list.innerHTML += `
+                <div class="student-item">
+                    <div class="info">
+                        <h4>${s.name} ${noteIcon}</h4>
+                        <p>الرقم: <strong>${s.id}</strong> | الصف: ${s.studentClass || 'غير محدد'} ${feeStatus}</p>
+                    </div>
+                    <div class="actions">
+                        <button class="btn-main" style="width:auto;" onclick="editStudentFromList('${s.id}')">تعديل ✏️</button>
+                    </div>
+                </div>`;
         });
     }
 
     function renderParentNotes() {
-        const notesDiv = document.getElementById('notesListContainer');
-        notesDiv.innerHTML = '';
-        
-        const studentsWithNotes = allStudentsData.filter(s => s.parentNote);
-        if (studentsWithNotes.length === 0) {
-            notesDiv.innerHTML = '<p style="text-align: center; color: #6b7280; margin-top: 20px;">لا توجد رسائل أو ملاحظات جديدة.</p>';
-            return;
-        }
-
-        studentsWithNotes.forEach(student => {
-            const div = document.createElement('div');
-            div.className = 'note-card';
-            div.innerHTML = `
-                <h4>
-                    <span>الطالب: ${student.name} <span class="info-text">(رقم: ${student.id})</span></span>
-                    <button class="btn-clear-note" onclick="clearNoteFromTab('${student.id}')">تحديد كمقروء ومسح ✔️</button>
-                </h4>
-                <p>💬 "${student.parentNote}"</p>
-            `;
-            notesDiv.appendChild(div);
+        const notesDiv = document.getElementById('notesListContainer'); notesDiv.innerHTML = '';
+        const withNotes = allStudentsData.filter(s => s.parentNote);
+        if (withNotes.length === 0) { notesDiv.innerHTML = '<p style="text-align:center; color:#6b7280;">لا توجد رسائل.</p>'; return; }
+        withNotes.forEach(s => {
+            notesDiv.innerHTML += `
+                <div class="note-card">
+                    <h4><span>${s.name} (رقم: ${s.id})</span><button class="btn-clear-note" onclick="clearNoteFromTab('${s.id}')">مسح ✔️</button></h4>
+                    <p>💬 "${s.parentNote}"</p>
+                </div>`;
         });
     }
 
     function filterStudents() {
-        const searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
-        const filtered = allStudentsData.filter(student => {
-            const nameMatch = student.name && student.name.toLowerCase().startsWith(searchTerm);
-            const idMatch = student.id.includes(searchTerm);
-            return nameMatch || idMatch;
+        const search = document.getElementById('searchInput').value.trim().toLowerCase();
+        const classF = document.getElementById('classFilter').value;
+        const filtered = allStudentsData.filter(s => {
+            const mName = (s.name || '').toLowerCase().startsWith(search) || s.id.includes(search);
+            const mClass = classF === "" || s.studentClass === classF;
+            return mName && mClass;
         });
         renderStudentsList(filtered);
     }
 
     function editStudentFromList(refId) {
-        const student = allStudentsData.find(s => s.id === refId);
-        if(student) {
-            document.getElementById('studentRef').value = student.id;
-            document.getElementById('studentName').value = student.name || '';
-            document.getElementById('studentInfo').value = student.info || '';
-            document.getElementById('studentGrades').value = student.grades || '';
-            document.getElementById('studentBehavior').value = student.behavior || '';
+        const s = allStudentsData.find(x => x.id === refId);
+        if(s) {
+            document.getElementById('studentRef').value = s.id;
+            document.getElementById('studentName').value = s.name || '';
+            document.getElementById('studentClass').value = s.studentClass || '';
+            document.getElementById('feeTotal').value = s.feeTotal || '';
+            document.getElementById('feePaid').value = s.feePaid || '';
+            document.getElementById('daysPresent').value = s.daysPresent || '';
+            document.getElementById('daysAbsent').value = s.daysAbsent || '';
+            document.getElementById('studentInfo').value = s.info || '';
+            document.getElementById('studentGrades').value = s.grades || '';
+            document.getElementById('studentBehavior').value = s.behavior || '';
             document.getElementById('studentPhoto').value = ''; 
-            currentPhotoUrl = student.photoUrl || ""; 
-            
-            document.getElementById('saveMsg').innerText = '';
+            currentPhotoUrl = s.photoUrl || ""; 
+            calcFee(); // حساب المتبقي للفورم
             switchTab('addTab'); 
         }
     }
 
-    function clearNoteFromTab(refId) {
-        db.collection("students").doc(refId).update({
-            parentNote: firebase.firestore.FieldValue.delete()
-        }).then(() => {
-            fetchAllStudents(); 
-        });
-    }
-
-    function deleteStudentFromList(refId, studentName) {
-        if(confirm(`هل أنت متأكد من حذف الطالب (${studentName}) نهائياً؟`)) {
-            db.collection("students").doc(refId).delete().then(() => fetchAllStudents() );
-        }
-    }
-
+    function clearNoteFromTab(refId) { db.collection("students").doc(refId).update({ parentNote: firebase.firestore.FieldValue.delete() }).then(fetchAllStudents); }
     function deleteStudentFromForm() {
         const refId = document.getElementById('studentRef').value;
-        if(confirm("هل تريد حذف هذا الطالب؟")) {
-            db.collection("students").doc(refId).delete().then(() => {
-                document.getElementById('saveMsg').className = 'msg success';
-                document.getElementById('saveMsg').innerText = "تم الحذف!";
-                setTimeout(prepareNewStudent, 1500);
-            });
-        }
+        if(confirm("حذف الطالب نهائياً؟")) db.collection("students").doc(refId).delete().then(() => { setTimeout(prepareNewStudent, 1000); });
     }
 </script>
 

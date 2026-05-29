@@ -2,52 +2,83 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- إعدادات تطبيق الهاتف (PWA) -->
+    <meta name="theme-color" content="#2563eb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>معهد النور - بوابة استعلام الطلاب</title>
+    
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     
     <style>
         :root { --primary: #2563eb; --primary-hover: #1d4ed8; --bg: #f3f4f6; --text: #1f2937; --card-bg: #ffffff; }
-        body { margin: 0; font-family: 'Cairo', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
-        .container { width: 100%; max-width: 480px; }
-        .card { background: var(--card-bg); border-radius: 16px; padding: 40px 30px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05); text-align: center; }
+        body { margin: 0; font-family: 'Cairo', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .container { width: 100%; max-width: 500px; }
         
-        .logo-container img { width: 100px; height: 100px; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 15px; object-fit: cover; }
+        /* شريط الإعلانات */
+        #announcementBanner { display: none; background: #fef3c7; border: 1px solid #fbbf24; color: #b45309; padding: 12px; border-radius: 10px; margin-bottom: 15px; text-align: center; font-weight: 600; font-size: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        
+        .card { background: var(--card-bg); border-radius: 16px; padding: 40px 30px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05); text-align: center; margin-bottom: 15px; position: relative;}
+        
+        .logo-container img { width: 100px; height: 100px; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 15px; object-fit: cover; border: 3px solid white;}
         .logo-container h2 { margin: 0; font-size: 26px; color: var(--primary); font-weight: 700; }
         .logo-container p { margin: 5px 0 25px; font-size: 15px; color: #6b7280; }
         
         .search-box { position: relative; margin-bottom: 20px; }
         .search-box input { width: 100%; padding: 15px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 16px; font-family: 'Cairo'; text-align: center; transition: 0.3s; box-sizing: border-box; }
         .search-box input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1); }
-        button { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 700; font-family: 'Cairo'; cursor: pointer; transition: 0.3s; }
-        button:hover { background: var(--primary-hover); transform: translateY(-2px); }
+        .btn-main { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 700; font-family: 'Cairo'; cursor: pointer; transition: 0.3s; }
+        .btn-main:hover { background: var(--primary-hover); transform: translateY(-2px); }
         
         .result-card { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 25px; margin-top: 25px; display: none; text-align: right; animation: fadeIn 0.5s; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
         .student-photo { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; margin: 0 auto 20px; border: 4px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: block; }
-        .result-card p { margin: 0 0 15px 0; padding-bottom: 12px; border-bottom: 1px solid #e5e7eb; font-size: 15px; color: #4b5563; line-height: 1.6; }
-        .result-card p:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-        .result-card strong { color: var(--primary); font-weight: 700; display: inline-block; width: 120px; }
         
-        /* تصميم صندوق الملاحظات */
+        .info-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 15px; border-bottom: 1px solid #e5e7eb; padding-bottom: 15px; }
+        .info-item { background: white; padding: 10px 15px; border-radius: 8px; border: 1px solid #f3f4f6; }
+        .info-item strong { color: var(--primary); display: block; font-size: 13px; margin-bottom: 3px; }
+        .info-item span { color: #1f2937; font-size: 15px; font-weight: 600;}
+        
+        .badge { padding: 4px 8px; border-radius: 6px; font-size: 13px; font-weight: bold; margin-right: 5px; }
+        .badge-green { background: #d1fae5; color: #065f46; }
+        .badge-red { background: #fee2e2; color: #991b1b; }
+        
+        .btn-print { background: #10b981; margin-top: 15px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-print:hover { background: #059669; }
+
         .note-section { margin-top: 20px; background: white; padding: 15px; border-radius: 10px; border: 1px solid #e5e7eb; }
         .note-section h4 { margin: 0 0 10px 0; color: #1f2937; font-size: 15px; }
         .note-section textarea { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; font-family: 'Cairo'; font-size: 14px; box-sizing: border-box; margin-bottom: 10px; resize: vertical; }
-        .note-section textarea:focus { outline: none; border-color: var(--primary); }
-        .btn-send { background: #10b981; padding: 10px; font-size: 15px; }
-        .btn-send:hover { background: #059669; }
+        .btn-send { background: #f59e0b; padding: 10px; font-size: 15px; width: 100%; color: white; border: none; border-radius: 8px; font-family: 'Cairo'; font-weight: bold; cursor: pointer; }
 
-        .msg { margin-top: 15px; font-size: 15px; font-weight: 600; }
+        .msg { margin-top: 15px; font-size: 15px; font-weight: 600; text-align: center;}
         .error { color: #dc2626; }
         .success { color: #10b981; }
+
+        .dev-signature { text-align: center; margin-top: 10px; font-size: 14px; color: #6b7280; }
+        .dev-signature a { color: #25D366; text-decoration: none; font-weight: 700; transition: 0.3s; display: inline-flex; align-items: center; gap: 5px; }
+        
+        /* إعدادات الطباعة للجلاء */
+        @media print {
+            body { background: white; padding: 0; }
+            .search-box, .btn-main, .note-section, .btn-print, .dev-signature, #announcementBanner { display: none !important; }
+            .card { box-shadow: none; border: 2px solid #000; margin: 0; padding: 20px; }
+            .result-card { display: block; border: none; background: white; margin-top: 0; padding: 10px; }
+            .info-item { border: 1px solid #ccc; }
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
+    
+    <!-- شريط الإعلانات -->
+    <div id="announcementBanner">📢 <span id="announcementText"></span></div>
+
     <div class="card">
         <div class="logo-container">
             <img id="mainLogo" src="https://via.placeholder.com/110?text=Logo" alt="لوجو المعهد">
@@ -56,17 +87,31 @@
         </div>
 
         <div class="search-box">
-            <input type="number" id="refNumberSearch" placeholder="أدخل الرقم المرجعي للطالب هنا...">
+            <input type="number" id="refNumberSearch" placeholder="أدخل الرقم المرجعي للطالب...">
         </div>
-        <button onclick="searchStudent()">عرض بيانات الطالب</button>
+        <button class="btn-main" onclick="searchStudent()">عرض التقرير الشامل</button>
         <div id="searchMsg" class="msg"></div>
         
         <div id="studentDataDisplay" class="result-card">
             <img id="resPhoto" class="student-photo" src="" alt="صورة الطالب">
-            <p><strong>اسم الطالب:</strong> <span id="resName"></span></p>
-            <p><strong>البيانات الشخصية:</strong> <span id="resInfo"></span></p>
-            <p><strong>التقييم الأكاديمي:</strong> <span id="resGrades"></span></p>
-            <p><strong>السلوك والغياب:</strong> <span id="resBehavior"></span></p>
+            
+            <div class="info-grid">
+                <div class="info-item"><strong>اسم الطالب:</strong> <span id="resName"></span></div>
+                <div class="info-item"><strong>الصف والشعبة:</strong> <span id="resClass"></span></div>
+                <div class="info-item"><strong>المعلومات الشخصية:</strong> <span id="resInfo"></span></div>
+                <div class="info-item"><strong>التقييم الأكاديمي:</strong> <span id="resGrades"></span></div>
+                <div class="info-item">
+                    <strong>الوضع المالي:</strong> 
+                    <span id="resFinancial"></span>
+                </div>
+                <div class="info-item">
+                    <strong>سجل الدوام:</strong> 
+                    <span id="resAttendance"></span>
+                </div>
+                <div class="info-item"><strong>ملاحظات الإدارة:</strong> <span id="resBehavior"></span></div>
+            </div>
+
+            <button class="btn-main btn-print" onclick="window.print()">🖨️ طباعة التقرير (جلاء)</button>
 
             <div class="note-section">
                 <h4>لديك ملاحظة للإدارة؟</h4>
@@ -75,6 +120,10 @@
                 <div id="noteMsg" class="msg" style="font-size: 13px; margin-top: 5px;"></div>
             </div>
         </div>
+    </div>
+    
+    <div class="dev-signature">
+        برمجة وتصميم: <a href="https://wa.me/963954571163" target="_blank">محمود مغلاج 💬</a>
     </div>
 </div>
 
@@ -94,9 +143,15 @@
     let currentSearchedRef = ""; 
 
     window.onload = () => {
+        // جلب اللوجو والإعلان العام
         db.collection("settings").doc("general").get().then((doc) => {
-            if(doc.exists && doc.data().logoUrl) {
-                document.getElementById('mainLogo').src = doc.data().logoUrl;
+            if(doc.exists) {
+                const data = doc.data();
+                if(data.logoUrl) document.getElementById('mainLogo').src = data.logoUrl;
+                if(data.announcement) {
+                    document.getElementById('announcementText').innerText = data.announcement;
+                    document.getElementById('announcementBanner').style.display = 'block';
+                }
             }
         });
     };
@@ -105,64 +160,63 @@
         const refNumber = document.getElementById('refNumberSearch').value.trim();
         const msgDiv = document.getElementById('searchMsg');
         const displayDiv = document.getElementById('studentDataDisplay');
-        const photoImg = document.getElementById('resPhoto');
         document.getElementById('noteMsg').innerText = ''; 
         document.getElementById('parentNoteInput').value = '';
 
-        if (!refNumber) {
-            msgDiv.className = 'msg error'; msgDiv.innerText = "الرجاء إدخال الرقم المرجعي أولاً.";
-            displayDiv.style.display = 'none'; return;
-        }
+        if (!refNumber) { msgDiv.className = 'msg error'; msgDiv.innerText = "الرجاء إدخال الرقم المرجعي."; displayDiv.style.display = 'none'; return; }
 
-        msgDiv.innerText = "جاري البحث في السجلات...";
-        msgDiv.className = 'msg';
-        displayDiv.style.display = 'none';
+        msgDiv.innerText = "جاري البحث..."; msgDiv.className = 'msg'; displayDiv.style.display = 'none';
 
         db.collection("students").doc(refNumber).get().then((doc) => {
             if (doc.exists) {
                 const data = doc.data();
                 currentSearchedRef = refNumber; 
+                
+                document.getElementById('resPhoto').src = data.photoUrl || '';
+                document.getElementById('resPhoto').style.display = data.photoUrl ? 'block' : 'none';
+                
                 document.getElementById('resName').innerText = data.name || 'غير مدون';
+                document.getElementById('resClass').innerText = data.studentClass || 'غير محدد';
                 document.getElementById('resInfo').innerText = data.info || 'لا توجد بيانات';
                 document.getElementById('resGrades').innerText = data.grades || 'لم يتم رصد درجات';
                 document.getElementById('resBehavior').innerText = data.behavior || 'لا توجد ملاحظات';
                 
-                if (data.photoUrl) {
-                    photoImg.src = data.photoUrl;
-                    photoImg.style.display = 'block';
+                // معالجة المالية
+                const total = Number(data.feeTotal) || 0;
+                const paid = Number(data.feePaid) || 0;
+                const remaining = total - paid;
+                if(total === 0) {
+                    document.getElementById('resFinancial').innerHTML = `<span class="badge badge-green">معفى / غير محدد</span>`;
+                } else if(remaining <= 0) {
+                    document.getElementById('resFinancial').innerHTML = `<span class="badge badge-green">خالص الدفع ✔️</span> (الإجمالي: ${total})`;
                 } else {
-                    photoImg.style.display = 'none';
+                    document.getElementById('resFinancial').innerHTML = `<span class="badge badge-red">متبقي: ${remaining}</span> (المدفوع: ${paid} من ${total})`;
                 }
-                
+
+                // معالجة الحضور
+                const present = Number(data.daysPresent) || 0;
+                const absent = Number(data.daysAbsent) || 0;
+                document.getElementById('resAttendance').innerHTML = `<span style="color:#10b981">حضور: ${present} أيام</span> | <span style="color:#ef4444">غياب: ${absent} أيام</span>`;
+
                 msgDiv.innerText = '';
                 displayDiv.style.display = 'block';
             } else {
-                msgDiv.className = 'msg error'; msgDiv.innerText = "عذراً، لا يوجد طالب مسجل بهذا الرقم.";
+                msgDiv.className = 'msg error'; msgDiv.innerText = "لا يوجد طالب مسجل بهذا الرقم.";
             }
-        }).catch((error) => {
-            msgDiv.className = 'msg error'; msgDiv.innerText = "حدث خطأ في الاتصال بالخادم.";
-        });
+        }).catch((error) => { msgDiv.className = 'msg error'; msgDiv.innerText = "حدث خطأ في الاتصال بالخادم."; });
     }
 
     function sendParentNote() {
         const note = document.getElementById('parentNoteInput').value.trim();
         const noteMsg = document.getElementById('noteMsg');
-
-        if(!note) {
-            noteMsg.className = 'msg error'; noteMsg.innerText = "الرجاء كتابة ملاحظة أولاً."; return;
-        }
+        if(!note) { noteMsg.className = 'msg error'; noteMsg.innerText = "الرجاء كتابة ملاحظة."; return; }
 
         noteMsg.className = 'msg'; noteMsg.style.color = "#f59e0b"; noteMsg.innerText = "جاري الإرسال...";
-
         db.collection("students").doc(currentSearchedRef).update({
-            parentNote: note,
-            noteDate: firebase.firestore.FieldValue.serverTimestamp()
+            parentNote: note, noteDate: firebase.firestore.FieldValue.serverTimestamp()
         }).then(() => {
-            noteMsg.className = 'msg success'; 
-            noteMsg.innerText = "تم إرسال ملاحظتك للإدارة بنجاح!";
+            noteMsg.className = 'msg success'; noteMsg.innerText = "تم الإرسال للإدارة بنجاح!";
             document.getElementById('parentNoteInput').value = '';
-        }).catch(error => {
-            noteMsg.className = 'msg error'; noteMsg.innerText = "حدث خطأ أثناء الإرسال.";
         });
     }
 </script>
