@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>معهد النور - بوابة استعلام الطلاب</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root { --primary: #2563eb; --primary-hover: #1d4ed8; --bg: #f3f4f6; --text: #1f2937; --card-bg: #ffffff; }
+        body { margin: 0; font-family: 'Cairo', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+        .container { width: 100%; max-width: 480px; }
+        .card { background: var(--card-bg); border-radius: 16px; padding: 40px 30px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05); text-align: center; }
+        
+        .logo-container img { width: 100px; height: 100px; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 15px; object-fit: cover; }
+        .logo-container h2 { margin: 0; font-size: 26px; color: var(--primary); font-weight: 700; }
+        .logo-container p { margin: 5px 0 25px; font-size: 15px; color: #6b7280; }
+        
+        .search-box { position: relative; margin-bottom: 20px; }
+        .search-box input { width: 100%; padding: 15px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 16px; font-family: 'Cairo'; text-align: center; transition: 0.3s; box-sizing: border-box; }
+        .search-box input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1); }
+        button { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 700; font-family: 'Cairo'; cursor: pointer; transition: 0.3s; }
+        button:hover { background: var(--primary-hover); transform: translateY(-2px); }
+        
+        .result-card { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 25px; margin-top: 25px; display: none; text-align: right; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .student-photo { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; margin: 0 auto 20px; border: 4px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: block; }
+        .result-card p { margin: 0 0 15px 0; padding-bottom: 12px; border-bottom: 1px solid #e5e7eb; font-size: 15px; color: #4b5563; line-height: 1.6; }
+        .result-card p:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .result-card strong { color: var(--primary); font-weight: 700; display: inline-block; width: 120px; }
+        
+        /* تصميم صندوق الملاحظات */
+        .note-section { margin-top: 20px; background: white; padding: 15px; border-radius: 10px; border: 1px solid #e5e7eb; }
+        .note-section h4 { margin: 0 0 10px 0; color: #1f2937; font-size: 15px; }
+        .note-section textarea { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; font-family: 'Cairo'; font-size: 14px; box-sizing: border-box; margin-bottom: 10px; resize: vertical; }
+        .note-section textarea:focus { outline: none; border-color: var(--primary); }
+        .btn-send { background: #10b981; padding: 10px; font-size: 15px; }
+        .btn-send:hover { background: #059669; }
+
+        .msg { margin-top: 15px; font-size: 15px; font-weight: 600; }
+        .error { color: #dc2626; }
+        .success { color: #10b981; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="card">
+        <div class="logo-container">
+            <img id="mainLogo" src="https://via.placeholder.com/110?text=Logo" alt="لوجو المعهد">
+            <h2>معهد النور</h2>
+            <p>بوابة استعلام أولياء الأمور</p>
+        </div>
+
+        <div class="search-box">
+            <input type="number" id="refNumberSearch" placeholder="أدخل الرقم المرجعي للطالب هنا...">
+        </div>
+        <button onclick="searchStudent()">عرض بيانات الطالب</button>
+        <div id="searchMsg" class="msg"></div>
+        
+        <div id="studentDataDisplay" class="result-card">
+            <img id="resPhoto" class="student-photo" src="" alt="صورة الطالب">
+            <p><strong>اسم الطالب:</strong> <span id="resName"></span></p>
+            <p><strong>البيانات الشخصية:</strong> <span id="resInfo"></span></p>
+            <p><strong>التقييم الأكاديمي:</strong> <span id="resGrades"></span></p>
+            <p><strong>السلوك والغياب:</strong> <span id="resBehavior"></span></p>
+
+            <div class="note-section">
+                <h4>لديك ملاحظة للإدارة؟</h4>
+                <textarea id="parentNoteInput" rows="2" placeholder="اكتب ملاحظتك هنا ليتم إرسالها للإدارة مباشرة..."></textarea>
+                <button class="btn-send" onclick="sendParentNote()">إرسال الملاحظة ✉️</button>
+                <div id="noteMsg" class="msg" style="font-size: 13px; margin-top: 5px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyCyM09CRmdPMK1uPUvBcMpp5BgvOITknlk",
+        authDomain: "cafemood-c9196.firebaseapp.com",
+        databaseURL: "https://cafemood-c9196-default-rtdb.firebaseio.com",
+        projectId: "cafemood-c9196",
+        storageBucket: "cafemood-c9196.firebasestorage.app",
+        messagingSenderId: "489182984590",
+        appId: "1:489182984590:web:7d80fb84a0fd90a0924cdf"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    let currentSearchedRef = ""; 
+
+    window.onload = () => {
+        db.collection("settings").doc("general").get().then((doc) => {
+            if(doc.exists && doc.data().logoUrl) {
+                document.getElementById('mainLogo').src = doc.data().logoUrl;
+            }
+        });
+    };
+
+    function searchStudent() {
+        const refNumber = document.getElementById('refNumberSearch').value.trim();
+        const msgDiv = document.getElementById('searchMsg');
+        const displayDiv = document.getElementById('studentDataDisplay');
+        const photoImg = document.getElementById('resPhoto');
+        document.getElementById('noteMsg').innerText = ''; 
+        document.getElementById('parentNoteInput').value = '';
+
+        if (!refNumber) {
+            msgDiv.className = 'msg error'; msgDiv.innerText = "الرجاء إدخال الرقم المرجعي أولاً.";
+            displayDiv.style.display = 'none'; return;
+        }
+
+        msgDiv.innerText = "جاري البحث في السجلات...";
+        msgDiv.className = 'msg';
+        displayDiv.style.display = 'none';
+
+        db.collection("students").doc(refNumber).get().then((doc) => {
+            if (doc.exists) {
+                const data = doc.data();
+                currentSearchedRef = refNumber; 
+                document.getElementById('resName').innerText = data.name || 'غير مدون';
+                document.getElementById('resInfo').innerText = data.info || 'لا توجد بيانات';
+                document.getElementById('resGrades').innerText = data.grades || 'لم يتم رصد درجات';
+                document.getElementById('resBehavior').innerText = data.behavior || 'لا توجد ملاحظات';
+                
+                if (data.photoUrl) {
+                    photoImg.src = data.photoUrl;
+                    photoImg.style.display = 'block';
+                } else {
+                    photoImg.style.display = 'none';
+                }
+                
+                msgDiv.innerText = '';
+                displayDiv.style.display = 'block';
+            } else {
+                msgDiv.className = 'msg error'; msgDiv.innerText = "عذراً، لا يوجد طالب مسجل بهذا الرقم.";
+            }
+        }).catch((error) => {
+            msgDiv.className = 'msg error'; msgDiv.innerText = "حدث خطأ في الاتصال بالخادم.";
+        });
+    }
+
+    function sendParentNote() {
+        const note = document.getElementById('parentNoteInput').value.trim();
+        const noteMsg = document.getElementById('noteMsg');
+
+        if(!note) {
+            noteMsg.className = 'msg error'; noteMsg.innerText = "الرجاء كتابة ملاحظة أولاً."; return;
+        }
+
+        noteMsg.className = 'msg'; noteMsg.style.color = "#f59e0b"; noteMsg.innerText = "جاري الإرسال...";
+
+        db.collection("students").doc(currentSearchedRef).update({
+            parentNote: note,
+            noteDate: firebase.firestore.FieldValue.serverTimestamp()
+        }).then(() => {
+            noteMsg.className = 'msg success'; 
+            noteMsg.innerText = "تم إرسال ملاحظتك للإدارة بنجاح!";
+            document.getElementById('parentNoteInput').value = '';
+        }).catch(error => {
+            noteMsg.className = 'msg error'; noteMsg.innerText = "حدث خطأ أثناء الإرسال.";
+        });
+    }
+</script>
+</body>
+</html>
