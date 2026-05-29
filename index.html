@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#4f46e5">
+    <title>معهد النور - صيانة النظام</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            --card-bg: rgba(255, 255, 255, 0.85);
+            --card-blur: blur(12px);
+            --text-main: #0f172a;
+            --text-sec: #64748b;
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --border-color: rgba(226, 232, 240, 0.8);
+            --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
+        }
+
+        [data-theme="dark"] {
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            --card-bg: rgba(30, 41, 59, 0.75);
+            --card-blur: blur(12px);
+            --text-main: #f8fafc;
+            --text-sec: #94a3b8;
+            --primary: #6366f1;
+            --primary-hover: #818cf8;
+            --border-color: rgba(51, 65, 85, 0.5);
+            --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        * { box-sizing: border-box; transition: background 0.3s, color 0.3s, border-color 0.3s; }
+        body { margin: 0; font-family: 'Cairo', sans-serif; background: var(--bg-gradient); color: var(--text-main); display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px 15px; overflow-x: hidden; }
+        
+        .maintenance-container { max-width: 550px; width: 100%; text-align: center; animation: fadeIn 0.6s ease-out; }
+        
+        .glass-card { background: var(--card-bg); backdrop-filter: var(--card-blur); -webkit-backdrop-filter: var(--card-blur); border-radius: 28px; padding: 40px 30px; box-shadow: var(--shadow); border: 1px solid var(--border-color); position: relative; }
+        
+        /* حركة الأيقونة الدوارة */
+        .icon-wrapper { position: relative; width: 100px; height: 100px; margin: 0 auto 25px; display: flex; align-items: center; justify-content: center; }
+        .icon-bg { position: absolute; width: 100%; height: 100%; background: rgba(79, 70, 229, 0.1); border-radius: 50%; animation: pulse 2s infinite ease-in-out; }
+        .main-icon { font-size: 48px; color: var(--primary); z-index: 2; animation: spin 4s infinite linear; }
+        
+        h1 { font-size: 26px; font-weight: 800; margin: 0 0 12px 0; color: var(--text-main); }
+        p { font-size: 15px; color: var(--text-sec); font-weight: 600; line-height: 1.7; margin: 0 0 30px 0; }
+        
+        /* العداد التنازلي */
+        .countdown-grid { display: flex; justify-content: center; gap: 15px; margin-bottom: 35px; }
+        .countdown-item { background: rgba(79, 70, 229, 0.06); border: 1px solid var(--border-color); border-radius: 16px; padding: 12px; min-width: 75px; flex: 1; box-shadow: inset 0 2px 4px rgba(0,0,0,0.01); }
+        .countdown-val { display: block; font-size: 22px; font-weight: 800; color: var(--primary); }
+        .countdown-label { font-size: 12px; font-weight: 700; color: var(--text-sec); }
+        
+        .btn-contact { width: 100%; padding: 16px; background: #25d366; color: #fff; border: none; border-radius: 16px; font-size: 16px; font-weight: 800; font-family: 'Cairo'; cursor: pointer; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.25); transition: 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 10px; text-decoration: none; }
+        .btn-contact:hover { background: #20ba5a; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37, 211, 102, 0.35); }
+        
+        .theme-toggle { position: absolute; top: 20px; left: 20px; background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-main); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; box-shadow: var(--shadow); z-index: 10; }
+        
+        .dev-signature { text-align: center; margin-top: 25px; font-size: 14px; color: var(--text-sec); font-weight: 600; }
+        .dev-signature a { color: #10b981; text-decoration: none; font-weight: 800; }
+
+        /* الأنميشن والتحريكات */
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 0.5; } 50% { transform: scale(1.15); opacity: 0.8; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<div class="maintenance-container">
+    <div class="glass-card">
+        <button class="theme-toggle" onclick="toggleTheme()" id="themeIcon"><i class="fa-solid fa-moon"></i></button>
+        
+        <div class="icon-wrapper">
+            <div class="icon-bg"></div>
+            <i class="fa-solid fa-gears main-icon"></i>
+        </div>
+        
+        <h1>جاري صيانة وتطوير النظام</h1>
+        <p>نعمل حالياً على تحديث البوابة الإلكترونية لتقديم تجربة مستخدم أفضل وأسرع. سنعود للعمل بكفاءة كاملة خلال وقت قصير، شكراً لتفهمكم.</p>
+        
+        <div class="countdown-grid">
+            <div class="countdown-item">
+                <span class="countdown-val" id="cd-hours">00</span>
+                <span class="countdown-label">ساعة</span>
+            </div>
+            <div class="countdown-item">
+                <span class="countdown-val" id="cd-minutes">00</span>
+                <span class="countdown-label">دقيقة</span>
+            </div>
+            <div class="countdown-item">
+                <span class="countdown-val" id="cd-seconds">00</span>
+                <span class="countdown-label">ثانية</span>
+            </div>
+        </div>
+        
+        <a href="https://wa.me/963954571163" target="_blank" class="btn-contact">
+            <i class="fa-brands fa-whatsapp"></i> التواصل مع الدعم الفني الطارئ
+        </a>
+    </div>
+    
+    <div class="dev-signature">
+        تطوير وتصميم: <a href="https://wa.me/963954571163" target="_blank">م. محمود مغلاج <i class="fa-brands fa-whatsapp"></i></a>
+    </div>
+</div>
+
+<script>
+    // الحفاظ على ثيم المستخدم المفضل
+    const savedTheme = localStorage.getItem('appTheme') || 'light';
+    document.body.setAttribute('data-theme', savedTheme);
+    document.getElementById('themeIcon').innerHTML = savedTheme === 'dark' ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
+
+    function toggleTheme() {
+        const current = document.body.getAttribute('data-theme');
+        const next = current === 'dark' ? 'light' : 'dark';
+        document.body.setAttribute('data-theme', next);
+        localStorage.setItem('appTheme', next);
+        document.getElementById('themeIcon').innerHTML = next === 'dark' ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
+    }
+
+    // لتحديد وقت انتهاء الصيانة (مثال: بعد ساعتين من الآن)
+    // يمكنك تعديل التاريخ يدوياً مثل: "May 30, 2026 12:00:00"
+    let maintenanceEndTime = new Date().getTime() + (2 * 60 * 60 * 1000); 
+
+    const countdownTimer = setInterval(function() {
+        let now = new Date().getTime();
+        let distance = maintenanceEndTime - now;
+        
+        let hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        let minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        let seconds = Math.floor((distance % (1000 * 60)) / 1000);
+        
+        document.getElementById("cd-hours").innerText = hours < 10 ? "0" + hours : hours;
+        document.getElementById("cd-minutes").innerText = minutes < 10 ? "0" + minutes : minutes;
+        document.getElementById("cd-seconds").innerText = seconds < 10 ? "0" + seconds : seconds;
+        
+        // إذا انتهى الوقت يصفر العداد
+        if (distance < 0) {
+            clearInterval(countdownTimer);
+            document.getElementById("cd-hours").innerText = "00";
+            document.getElementById("cd-minutes").innerText = "00";
+            document.getElementById("cd-seconds").innerText = "00";
+        }
+    }, 1000);
+</script>
+</body>
+</html>
