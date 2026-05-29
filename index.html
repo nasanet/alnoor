@@ -3,131 +3,212 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- إعدادات تطبيق الهاتف (PWA) -->
-    <meta name="theme-color" content="#2563eb">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>معهد النور - بوابة استعلام الطلاب</title>
+    <meta name="theme-color" content="#4f46e5">
+    <title>معهد النور - البوابة الإلكترونية</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
     
     <style>
-        :root { --primary: #2563eb; --primary-hover: #1d4ed8; --bg: #f3f4f6; --text: #1f2937; --card-bg: #ffffff; }
-        body { margin: 0; font-family: 'Cairo', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        .container { width: 100%; max-width: 500px; }
-        
-        /* شريط الإعلانات */
-        #announcementBanner { display: none; background: #fef3c7; border: 1px solid #fbbf24; color: #b45309; padding: 12px; border-radius: 10px; margin-bottom: 15px; text-align: center; font-weight: 600; font-size: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        
-        .card { background: var(--card-bg); border-radius: 16px; padding: 40px 30px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05); text-align: center; margin-bottom: 15px; position: relative;}
-        
-        .logo-container img { width: 100px; height: 100px; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 15px; object-fit: cover; border: 3px solid white;}
-        .logo-container h2 { margin: 0; font-size: 26px; color: var(--primary); font-weight: 700; }
-        .logo-container p { margin: 5px 0 25px; font-size: 15px; color: #6b7280; }
-        
-        .search-box { position: relative; margin-bottom: 20px; }
-        .search-box input { width: 100%; padding: 15px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 16px; font-family: 'Cairo'; text-align: center; transition: 0.3s; box-sizing: border-box; }
-        .search-box input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1); }
-        .btn-main { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 700; font-family: 'Cairo'; cursor: pointer; transition: 0.3s; }
-        .btn-main:hover { background: var(--primary-hover); transform: translateY(-2px); }
-        
-        .result-card { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 25px; margin-top: 25px; display: none; text-align: right; animation: fadeIn 0.5s; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        .student-photo { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; margin: 0 auto 20px; border: 4px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: block; }
-        
-        .info-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 15px; border-bottom: 1px solid #e5e7eb; padding-bottom: 15px; }
-        .info-item { background: white; padding: 10px 15px; border-radius: 8px; border: 1px solid #f3f4f6; }
-        .info-item strong { color: var(--primary); display: block; font-size: 13px; margin-bottom: 3px; }
-        .info-item span { color: #1f2937; font-size: 15px; font-weight: 600;}
-        
-        .badge { padding: 4px 8px; border-radius: 6px; font-size: 13px; font-weight: bold; margin-right: 5px; }
-        .badge-green { background: #d1fae5; color: #065f46; }
-        .badge-red { background: #fee2e2; color: #991b1b; }
-        
-        .btn-print { background: #10b981; margin-top: 15px; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .btn-print:hover { background: #059669; }
+        :root {
+            --bg-main: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-sec: #64748b;
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --border-color: #e2e8f0;
+            --input-bg: #f8fafc;
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+        }
 
-        .note-section { margin-top: 20px; background: white; padding: 15px; border-radius: 10px; border: 1px solid #e5e7eb; }
-        .note-section h4 { margin: 0 0 10px 0; color: #1f2937; font-size: 15px; }
-        .note-section textarea { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; font-family: 'Cairo'; font-size: 14px; box-sizing: border-box; margin-bottom: 10px; resize: vertical; }
-        .btn-send { background: #f59e0b; padding: 10px; font-size: 15px; width: 100%; color: white; border: none; border-radius: 8px; font-family: 'Cairo'; font-weight: bold; cursor: pointer; }
+        [data-theme="dark"] {
+            --bg-main: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-sec: #94a3b8;
+            --primary: #6366f1;
+            --primary-hover: #818cf8;
+            --border-color: #334155;
+            --input-bg: #0f172a;
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+        }
 
-        .msg { margin-top: 15px; font-size: 15px; font-weight: 600; text-align: center;}
-        .error { color: #dc2626; }
+        * { box-sizing: border-box; transition: background-color 0.3s, color 0.3s, border-color 0.3s; }
+        body { margin: 0; font-family: 'Cairo', sans-serif; background: var(--bg-main); color: var(--text-main); padding: 20px 15px; }
+        
+        .app-container { max-width: 600px; margin: 0 auto; position: relative; padding-top: 40px;}
+
+        .theme-toggle { position: absolute; top: 0; left: 0; background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-main); width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; box-shadow: var(--shadow); z-index: 10;}
+
+        .card { background: var(--card-bg); border-radius: 24px; padding: 30px; margin-bottom: 25px; box-shadow: var(--shadow); border: 1px solid var(--border-color); position: relative;}
+        
+        .header-card { text-align: center; padding-top: 60px; margin-top: 50px;}
+        .logo-container { position: absolute; top: -60px; width: 100%; left: 0; text-align: center; }
+        .logo-container img { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 6px solid var(--bg-main); background: var(--card-bg); box-shadow: 0 8px 20px rgba(0,0,0,0.08);}
+        .header-card h2 { margin: 0; font-size: 26px; font-weight: 800; color: var(--text-main); }
+        .header-card p { margin: 5px 0 0; font-size: 16px; color: var(--text-sec); font-weight: 600;}
+
+        .input-group { position: relative; margin-bottom: 15px; width: 100%; }
+        .input-group input, .input-group textarea { width: 100%; padding: 22px 18px 12px; border: 2px solid var(--border-color); border-radius: 16px; font-size: 16px; font-family: 'Cairo'; background: var(--input-bg); color: var(--text-main); outline: none; font-weight: 600;}
+        .input-group label { position: absolute; right: 18px; top: 18px; color: var(--text-sec); font-size: 15px; transition: 0.2s ease all; pointer-events: none; }
+        
+        .input-group input:focus, .input-group textarea:focus { border-color: var(--primary); background: var(--card-bg); }
+        .input-group input:focus ~ label, .input-group input:not(:placeholder-shown) ~ label,
+        .input-group textarea:focus ~ label, .input-group textarea:not(:placeholder-shown) ~ label {
+            top: 8px; font-size: 12px; color: var(--primary); font-weight: 800;
+        }
+        
+        .btn-main { width: 100%; padding: 18px; background: var(--primary); color: #fff; border: none; border-radius: 16px; font-size: 17px; font-weight: 800; font-family: 'Cairo'; cursor: pointer; box-shadow: 0 4px 15px rgba(79, 70, 229, 0.25); transition: 0.2s;}
+        .btn-main:hover { background: var(--primary-hover); transform: translateY(-3px);}
+        .btn-main:active { transform: scale(0.98); }
+
+        #studentDataDisplay { display: none; animation: slideUp 0.4s ease; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .section-title { font-size: 18px; color: var(--primary); margin: 0 0 20px 0; font-weight: 800; display: flex; align-items: center; gap: 10px;}
+        
+        .profile-header { display: flex; align-items: center; gap: 20px; margin-bottom: 20px;}
+        .student-photo { width: 85px; height: 85px; border-radius: 20px; object-fit: cover; border: 2px solid var(--border-color); display: none; }
+        .profile-info h3 { margin: 0; font-size: 22px; color: var(--text-main); font-weight: 800;}
+        .profile-info p { margin: 5px 0 0; font-size: 15px; color: var(--text-sec); font-weight: 600;}
+
+        .info-row { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px dashed var(--border-color); font-size: 16px;}
+        .info-row:last-child { border-bottom: none; padding-bottom: 0;}
+        .info-row:first-child { padding-top: 0;}
+        .info-label { color: var(--text-sec); font-weight: 600;}
+        .info-value { color: var(--text-main); font-weight: 800; text-align: left; max-width: 60%; line-height: 1.5;}
+
+        .badge { padding: 6px 12px; border-radius: 8px; font-size: 13px; font-weight: 800; }
+        .badge-green { background: rgba(16, 185, 129, 0.15); color: #059669; }
+        .badge-red { background: rgba(239, 68, 68, 0.15); color: #dc2626; }
+        
+        .btn-print { background: #10b981; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.25);}
+        .btn-print:hover { background: #059669;}
+        .btn-logout { background: transparent; border: 2px solid #ef4444; color: #ef4444; box-shadow: none;}
+        .btn-logout:hover { background: #ef4444; color: #fff;}
+        .btn-send { background: #f59e0b; margin-bottom: 0; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.25);}
+        .btn-send:hover { background: #d97706;}
+
+        #installAppBtn { display: none; background: #8b5cf6; margin-top: 15px; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.25); }
+
+        .msg { margin-top: 15px; font-size: 15px; font-weight: 800; text-align: center;}
+        .error { color: #ef4444; }
         .success { color: #10b981; }
 
-        .dev-signature { text-align: center; margin-top: 10px; font-size: 14px; color: #6b7280; }
-        .dev-signature a { color: #25D366; text-decoration: none; font-weight: 700; transition: 0.3s; display: inline-flex; align-items: center; gap: 5px; }
+        .dev-signature { text-align: center; margin-top: 30px; font-size: 14px; color: var(--text-sec); font-weight: 600;}
+        .dev-signature a { color: #10b981; text-decoration: none; font-weight: 800; transition: 0.2s;}
+        .dev-signature a:hover { color: var(--primary); }
         
-        /* إعدادات الطباعة للجلاء */
+        #announcementBanner { display: none; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); color: #d97706; padding: 18px; border-radius: 16px; margin-bottom: 25px; text-align: center; font-weight: 800; font-size: 16px; }
+
         @media print {
             body { background: white; padding: 0; }
-            .search-box, .btn-main, .note-section, .btn-print, .dev-signature, #announcementBanner { display: none !important; }
-            .card { box-shadow: none; border: 2px solid #000; margin: 0; padding: 20px; }
-            .result-card { display: block; border: none; background: white; margin-top: 0; padding: 10px; }
-            .info-item { border: 1px solid #ccc; }
+            #searchSection, .theme-toggle, .btn-print, .btn-logout, .note-section, .dev-signature, #announcementBanner, #installAppBtn { display: none !important; }
+            .card { box-shadow: none; border: 2px solid #000; padding: 25px; border-radius: 0; margin-bottom: 15px;}
+            .info-row { border-bottom: 1px solid #ddd; }
         }
     </style>
 </head>
 <body>
 
-<div class="container">
+<script>
+    const savedTheme = localStorage.getItem('appTheme') || 'light';
+    document.body.setAttribute('data-theme', savedTheme);
+</script>
+
+<div class="app-container">
+    <button class="theme-toggle" onclick="toggleTheme()" id="themeIcon">☀️</button>
     
-    <!-- شريط الإعلانات -->
     <div id="announcementBanner">📢 <span id="announcementText"></span></div>
 
-    <div class="card">
+    <div class="card header-card">
         <div class="logo-container">
-            <img id="mainLogo" src="https://via.placeholder.com/110?text=Logo" alt="لوجو المعهد">
-            <h2>معهد النور</h2>
-            <p>بوابة استعلام أولياء الأمور</p>
+            <img id="mainLogo" src="https://via.placeholder.com/120?text=Logo" alt="اللوجو">
         </div>
+        <h2>معهد النور</h2>
+        <p>البوابة الإلكترونية لأولياء الأمور</p>
+    </div>
 
-        <div class="search-box">
-            <input type="number" id="refNumberSearch" placeholder="أدخل الرقم المرجعي للطالب...">
+    <div class="card" id="searchSection">
+        <div class="input-group">
+            <input type="number" id="refNumberSearch" placeholder=" ">
+            <label>أدخل الرقم المرجعي للطالب (ID)...</label>
         </div>
-        <button class="btn-main" onclick="searchStudent()">عرض التقرير الشامل</button>
-        <div id="searchMsg" class="msg"></div>
         
-        <div id="studentDataDisplay" class="result-card">
-            <img id="resPhoto" class="student-photo" src="" alt="صورة الطالب">
-            
-            <div class="info-grid">
-                <div class="info-item"><strong>اسم الطالب:</strong> <span id="resName"></span></div>
-                <div class="info-item"><strong>الصف والشعبة:</strong> <span id="resClass"></span></div>
-                <div class="info-item"><strong>المعلومات الشخصية:</strong> <span id="resInfo"></span></div>
-                <div class="info-item"><strong>التقييم الأكاديمي:</strong> <span id="resGrades"></span></div>
-                <div class="info-item">
-                    <strong>الوضع المالي:</strong> 
-                    <span id="resFinancial"></span>
+        <button class="btn-main" onclick="searchStudent()">استعلام عن بيانات الطالب</button>
+        <div id="searchMsg" class="msg"></div>
+        <button id="installAppBtn" class="btn-main" onclick="installApp()">📱 تثبيت البوابة على الهاتف</button>
+    </div>
+    
+    <div id="studentDataDisplay">
+        <div class="card">
+            <div class="profile-header">
+                <img id="resPhoto" class="student-photo" src="" alt="صورة الطالب">
+                <div class="profile-info">
+                    <h3 id="resName"></h3>
+                    <p id="resClass"></p>
                 </div>
-                <div class="info-item">
-                    <strong>سجل الدوام:</strong> 
-                    <span id="resAttendance"></span>
-                </div>
-                <div class="info-item"><strong>ملاحظات الإدارة:</strong> <span id="resBehavior"></span></div>
             </div>
-
-            <button class="btn-main btn-print" onclick="window.print()">🖨️ طباعة التقرير (جلاء)</button>
-
-            <div class="note-section">
-                <h4>لديك ملاحظة للإدارة؟</h4>
-                <textarea id="parentNoteInput" rows="2" placeholder="اكتب ملاحظتك هنا ليتم إرسالها للإدارة مباشرة..."></textarea>
-                <button class="btn-send" onclick="sendParentNote()">إرسال الملاحظة ✉️</button>
-                <div id="noteMsg" class="msg" style="font-size: 13px; margin-top: 5px;"></div>
-            </div>
+            <div style="margin-top: 15px; font-size: 15px; color: var(--text-sec); font-weight: 600; line-height: 1.6;" id="resInfo"></div>
         </div>
+
+        <div class="card">
+            <h3 class="section-title">🎓 السجل الأكاديمي والسلوك</h3>
+            <div class="info-row"><span class="info-label">النتائج والتقييم:</span> <span class="info-value" id="resGrades"></span></div>
+            <div class="info-row"><span class="info-label">تقييم الإدارة:</span> <span class="info-value" id="resBehavior"></span></div>
+        </div>
+
+        <div class="card">
+            <h3 class="section-title">💰 الحسابات ومتابعة الدوام</h3>
+            <div class="info-row"><span class="info-label">سجل الرسوم:</span> <span class="info-value" id="resFinancial"></span></div>
+            <div class="info-row"><span class="info-label">الحضور والغياب:</span> <span class="info-value" id="resAttendance"></span></div>
+        </div>
+
+        <div class="card note-section">
+            <h3 class="section-title">✉️ مراسلة الإدارة</h3>
+            <div class="input-group">
+                <textarea id="parentNoteInput" rows="2" placeholder=" "></textarea>
+                <label>اكتب استفسارك أو ملاحظتك هنا...</label>
+            </div>
+            <button class="btn-main btn-send" onclick="sendParentNote()">إرسال الرسالة</button>
+            <div id="noteMsg" class="msg"></div>
+        </div>
+
+        <button class="btn-main btn-print" onclick="window.print()">🖨️ استخراج وثيقة التقرير (PDF)</button>
+        <button class="btn-main btn-logout" onclick="logoutParent()">تسجيل خروج / استعلام جديد 🔄</button>
     </div>
     
     <div class="dev-signature">
-        برمجة وتصميم: <a href="https://wa.me/963954571163" target="_blank">محمود مغلاج 💬</a>
+        تطوير وتصميم: <a href="https://wa.me/963954571163" target="_blank">م. محمود مغلاج 💬</a>
     </div>
 </div>
 
 <script>
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault(); deferredPrompt = e; document.getElementById('installAppBtn').style.display = 'block';
+    });
+    function installApp() {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then((choiceResult) => {
+                if (choiceResult.outcome === 'accepted') document.getElementById('installAppBtn').style.display = 'none';
+                deferredPrompt = null;
+            });
+        }
+    }
+
+    function toggleTheme() {
+        const current = document.body.getAttribute('data-theme');
+        const next = current === 'dark' ? 'light' : 'dark';
+        document.body.setAttribute('data-theme', next);
+        localStorage.setItem('appTheme', next);
+        document.getElementById('themeIcon').innerText = next === 'dark' ? '🌙' : '☀️';
+    }
+    document.getElementById('themeIcon').innerText = savedTheme === 'dark' ? '🌙' : '☀️';
+
     const firebaseConfig = {
         apiKey: "AIzaSyCyM09CRmdPMK1uPUvBcMpp5BgvOITknlk",
         authDomain: "cafemood-c9196.firebaseapp.com",
@@ -139,11 +220,9 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-
     let currentSearchedRef = ""; 
 
     window.onload = () => {
-        // جلب اللوجو والإعلان العام
         db.collection("settings").doc("general").get().then((doc) => {
             if(doc.exists) {
                 const data = doc.data();
@@ -154,68 +233,68 @@
                 }
             }
         });
+        const savedRef = localStorage.getItem('parentSavedRef');
+        if (savedRef) { document.getElementById('refNumberSearch').value = savedRef; searchStudent(true); }
     };
 
-    function searchStudent() {
+    function searchStudent(isAutoLoad = false) {
         const refNumber = document.getElementById('refNumberSearch').value.trim();
         const msgDiv = document.getElementById('searchMsg');
         const displayDiv = document.getElementById('studentDataDisplay');
+        const searchSec = document.getElementById('searchSection');
         document.getElementById('noteMsg').innerText = ''; 
         document.getElementById('parentNoteInput').value = '';
 
-        if (!refNumber) { msgDiv.className = 'msg error'; msgDiv.innerText = "الرجاء إدخال الرقم المرجعي."; displayDiv.style.display = 'none'; return; }
-
-        msgDiv.innerText = "جاري البحث..."; msgDiv.className = 'msg'; displayDiv.style.display = 'none';
+        if (!refNumber) { if(!isAutoLoad) { msgDiv.className = 'msg error'; msgDiv.innerText = "أدخل الرقم المرجعي (ID)."; } return; }
+        if(!isAutoLoad) { msgDiv.innerText = "جاري جلب البيانات..."; msgDiv.className = 'msg'; }
 
         db.collection("students").doc(refNumber).get().then((doc) => {
             if (doc.exists) {
                 const data = doc.data();
                 currentSearchedRef = refNumber; 
+                localStorage.setItem('parentSavedRef', refNumber); 
                 
                 document.getElementById('resPhoto').src = data.photoUrl || '';
                 document.getElementById('resPhoto').style.display = data.photoUrl ? 'block' : 'none';
-                
                 document.getElementById('resName').innerText = data.name || 'غير مدون';
-                document.getElementById('resClass').innerText = data.studentClass || 'غير محدد';
-                document.getElementById('resInfo').innerText = data.info || 'لا توجد بيانات';
-                document.getElementById('resGrades').innerText = data.grades || 'لم يتم رصد درجات';
-                document.getElementById('resBehavior').innerText = data.behavior || 'لا توجد ملاحظات';
+                document.getElementById('resClass').innerText = data.studentClass || 'المرحلة غير محددة';
+                document.getElementById('resInfo').innerText = data.info || 'لا توجد بيانات إضافية';
+                document.getElementById('resGrades').innerText = data.grades || '-';
+                document.getElementById('resBehavior').innerText = data.behavior || '-';
                 
-                // معالجة المالية
                 const total = Number(data.feeTotal) || 0;
                 const paid = Number(data.feePaid) || 0;
                 const remaining = total - paid;
-                if(total === 0) {
-                    document.getElementById('resFinancial').innerHTML = `<span class="badge badge-green">معفى / غير محدد</span>`;
-                } else if(remaining <= 0) {
-                    document.getElementById('resFinancial').innerHTML = `<span class="badge badge-green">خالص الدفع ✔️</span> (الإجمالي: ${total})`;
-                } else {
-                    document.getElementById('resFinancial').innerHTML = `<span class="badge badge-red">متبقي: ${remaining}</span> (المدفوع: ${paid} من ${total})`;
-                }
+                if(total === 0) { document.getElementById('resFinancial').innerHTML = `<span class="badge badge-green">معفى / غير محدد</span>`; } 
+                else if(remaining <= 0) { document.getElementById('resFinancial').innerHTML = `<span class="badge badge-green">لا يوجد ذمم مالية ✔️</span>`; } 
+                else { document.getElementById('resFinancial').innerHTML = `<span class="badge badge-red">الرصيد المتبقي: ${remaining}</span>`; }
 
-                // معالجة الحضور
                 const present = Number(data.daysPresent) || 0;
                 const absent = Number(data.daysAbsent) || 0;
-                document.getElementById('resAttendance').innerHTML = `<span style="color:#10b981">حضور: ${present} أيام</span> | <span style="color:#ef4444">غياب: ${absent} أيام</span>`;
+                document.getElementById('resAttendance').innerHTML = `<span style="color:#10b981">حضور: ${present}</span> | <span style="color:#ef4444">غياب: ${absent}</span>`;
 
                 msgDiv.innerText = '';
+                searchSec.style.display = 'none'; 
                 displayDiv.style.display = 'block';
             } else {
-                msgDiv.className = 'msg error'; msgDiv.innerText = "لا يوجد طالب مسجل بهذا الرقم.";
+                msgDiv.className = 'msg error'; msgDiv.innerText = "الرقم المدخل غير صحيح.";
+                localStorage.removeItem('parentSavedRef'); 
             }
-        }).catch((error) => { msgDiv.className = 'msg error'; msgDiv.innerText = "حدث خطأ في الاتصال بالخادم."; });
+        }).catch(() => { msgDiv.className = 'msg error'; msgDiv.innerText = "حدث خطأ في الشبكة."; });
     }
+
+    function logoutParent() { localStorage.removeItem('parentSavedRef'); location.reload(); }
 
     function sendParentNote() {
         const note = document.getElementById('parentNoteInput').value.trim();
         const noteMsg = document.getElementById('noteMsg');
-        if(!note) { noteMsg.className = 'msg error'; noteMsg.innerText = "الرجاء كتابة ملاحظة."; return; }
+        if(!note) { noteMsg.className = 'msg error'; noteMsg.innerText = "يرجى كتابة نص الرسالة."; return; }
 
-        noteMsg.className = 'msg'; noteMsg.style.color = "#f59e0b"; noteMsg.innerText = "جاري الإرسال...";
+        noteMsg.className = 'msg'; noteMsg.style.color = "var(--primary)"; noteMsg.innerText = "جاري الإرسال...";
         db.collection("students").doc(currentSearchedRef).update({
             parentNote: note, noteDate: firebase.firestore.FieldValue.serverTimestamp()
         }).then(() => {
-            noteMsg.className = 'msg success'; noteMsg.innerText = "تم الإرسال للإدارة بنجاح!";
+            noteMsg.className = 'msg success'; noteMsg.innerText = "تم تسليم الرسالة للإدارة بنجاح!";
             document.getElementById('parentNoteInput').value = '';
         });
     }

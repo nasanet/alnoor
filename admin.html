@@ -3,192 +3,384 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- PWA -->
-    <meta name="theme-color" content="#10b981">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>معهد النور - نظام الإدارة</title>
+    <title>معهد النور - لوحة التحكم والتحليل</title>
     
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
     
     <style>
-        :root { --admin-primary: #10b981; --admin-hover: #059669; --bg: #f3f4f6; --card-bg: #ffffff; --text: #1f2937; }
-        body { margin: 0; font-family: 'Cairo', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 15px;}
-        .container { width: 100%; max-width: 850px; }
-        .card { background: var(--card-bg); border-radius: 16px; padding: 25px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); margin-bottom: 15px;}
+        :root {
+            --bg-main: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-sec: #64748b;
+            --primary: #10b981;
+            --primary-hover: #059669;
+            --border-color: #e2e8f0;
+            --input-bg: #ffffff;
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+        }
+
+        [data-theme="dark"] {
+            --bg-main: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-sec: #94a3b8;
+            --primary: #10b981;
+            --primary-hover: #059669;
+            --border-color: #334155;
+            --input-bg: #0f172a;
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+        }
+
+        * { box-sizing: border-box; transition: background-color 0.3s, border-color 0.3s, color 0.3s; }
+        body { margin: 0; font-family: 'Cairo', sans-serif; background: var(--bg-main); color: var(--text-main); padding: 20px 15px; overflow-x: hidden;}
         
-        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f3f4f6; padding-bottom: 15px; margin-bottom: 20px; }
-        .header h2 { margin: 0; color: var(--admin-primary); font-size: 22px; font-weight: 700; display: flex; align-items: center; gap: 10px;}
-        .header img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
-        .logout-btn { background: #ef4444; color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-family: 'Cairo'; font-weight: bold;}
+        .app-container { max-width: 900px; margin: 0 auto; position: relative; }
         
-        .tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap;}
-        .tab-btn { flex: 1; padding: 10px; border: none; background: #e5e7eb; color: #4b5563; border-radius: 10px; font-family: 'Cairo'; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.3s; min-width: 110px;}
-        .tab-btn.active { background: var(--admin-primary); color: white; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2); }
-        .tab-content { display: none; animation: fadeIn 0.3s; }
+        /* القائمة المنزلقة */
+        .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 99; display: none; opacity: 0; transition: 0.3s; backdrop-filter: blur(4px);}
+        .sidebar { position: fixed; top: 0; right: -300px; width: 280px; height: 100%; background: var(--card-bg); z-index: 100; box-shadow: -5px 0 25px rgba(0,0,0,0.1); transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; padding: 25px; border-left: 1px solid var(--border-color);}
+        .sidebar.active { right: 0; }
+        .sidebar-overlay.active { display: block; opacity: 1; }
+        
+        .sidebar-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border-color); padding-bottom: 20px; margin-bottom: 20px;}
+        .sidebar-header h3 { margin: 0; color: var(--primary); font-size: 22px; font-weight: 800;}
+        .close-menu { background: none; border: none; font-size: 26px; color: var(--text-sec); cursor: pointer;}
+        
+        .menu-btn { width: 100%; text-align: right; padding: 16px 20px; margin-bottom: 12px; border: none; background: transparent; color: var(--text-main); font-family: 'Cairo'; font-size: 16px; font-weight: 700; border-radius: 14px; cursor: pointer; transition: 0.2s;}
+        .menu-btn:hover { background: var(--border-color); }
+        .menu-btn.active { background: rgba(16, 185, 129, 0.1); color: var(--primary); border: 1px solid rgba(16, 185, 129, 0.2);}
+        
+        .menu-toggle { background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-main); width: 50px; height: 50px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; box-shadow: var(--shadow); z-index: 10;}
+        .theme-toggle { background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-main); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; cursor: pointer; box-shadow: var(--shadow);}
+
+        .card { background: var(--card-bg); border-radius: 24px; padding: 30px; margin-bottom: 25px; box-shadow: var(--shadow); border: 1px solid var(--border-color);}
+        .card-title { font-size: 18px; color: var(--primary); margin: 0 0 20px 0; font-weight: 800; border-bottom: 2px dashed var(--border-color); padding-bottom: 12px; display: flex; align-items: center; gap:10px;}
+        
+        .top-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .top-nav-right { display: flex; gap: 15px; align-items: center;}
+        
+        .header-left { display: flex; align-items: center; gap: 15px; }
+        .header-left img { width: 50px; height: 50px; border-radius: 14px; object-fit: cover; border: 2px solid var(--border-color); box-shadow: 0 4px 10px rgba(0,0,0,0.05);}
+        .header-left h2 { margin: 0; color: var(--text-main); font-size: 22px; font-weight: 800; display: none;} 
+
+        /* Floating Labels Inputs */
+        .input-group { position: relative; margin-bottom: 20px; width: 100%;}
+        .input-group input, .input-group textarea, .input-group select { width: 100%; padding: 22px 18px 12px; border: 2px solid var(--border-color); border-radius: 16px; font-size: 16px; font-family: 'Cairo'; background: var(--input-bg); color: var(--text-main); outline: none; font-weight: 600;}
+        .input-group label { position: absolute; right: 18px; top: 18px; color: var(--text-sec); font-size: 15px; transition: 0.2s ease all; pointer-events: none; }
+        .input-group input:focus, .input-group textarea:focus, .input-group select:focus { border-color: var(--primary); background: var(--card-bg);}
+        .input-group input:focus ~ label, .input-group input:not(:placeholder-shown) ~ label,
+        .input-group textarea:focus ~ label, .input-group textarea:not(:placeholder-shown) ~ label { top: 8px; font-size: 12px; color: var(--primary); font-weight: 800; }
+        
+        .ref-input { border-color: var(--primary) !important; color: var(--primary) !important; font-weight: 800; font-size: 20px !important; text-align: center; letter-spacing: 2px;}
+
+        .btn-main { width: 100%; padding: 18px; border: none; border-radius: 16px; background: var(--primary); color: white; font-size: 17px; font-weight: 800; cursor: pointer; font-family: 'Cairo'; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.25); transition: 0.2s;}
+        .btn-main:hover { background: var(--primary-hover); transform: translateY(-3px);}
+        .btn-main:active { transform: translateY(0); }
+        .btn-danger { background: transparent; color: #ef4444; border: 2px solid #ef4444; padding: 14px 20px; border-radius: 14px; cursor: pointer; font-family: 'Cairo'; font-weight: 800;}
+        .btn-danger:hover { background: #ef4444; color: white;}
+
+        .tab-content { display: none; animation: fadeIn 0.4s ease; }
         .tab-content.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .form-grid { display: grid; grid-template-columns: 1fr; gap: 0 20px; }
+        .flex-row { display: flex; gap: 15px; margin-bottom: 5px; align-items: stretch;}
+        .flex-row .input-group { margin-bottom: 0; }
 
-        input, textarea, select { width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px; font-family: 'Cairo'; box-sizing: border-box; background: #f9fafb; transition: 0.3s; }
-        input:focus, textarea:focus, select:focus { outline: none; border-color: var(--admin-primary); }
-        .flex-row { display: flex; gap: 10px; margin-bottom: 15px; }
-        .flex-row input, .flex-row select { margin-bottom: 0; }
-        
-        .ref-input { background: #ecfdf5 !important; border-color: #34d399 !important; color: #065f46; font-weight: bold; font-size: 18px; text-align: center; }
-        .section-title { font-size: 14px; color: #6b7280; margin-bottom: 5px; font-weight: bold; }
-        
-        .btn-main { width: 100%; padding: 14px; border: none; border-radius: 8px; background: var(--admin-primary); color: white; font-size: 15px; font-weight: bold; cursor: pointer; font-family: 'Cairo'; transition: 0.3s; }
-        .btn-main:hover { background: var(--admin-hover); }
-        .btn-danger { background: #ef4444; color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-family: 'Cairo'; font-weight: bold;}
+        /* تصميم الإحصائيات والتحليل (Dashboard) */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .stat-card { background: var(--card-bg); border: 1px solid var(--border-color); padding: 25px 20px; border-radius: 20px; text-align: center; box-shadow: var(--shadow); transition: 0.3s;}
+        .stat-card:hover { transform: translateY(-5px); border-color: var(--primary);}
+        .stat-icon { font-size: 32px; margin-bottom: 15px; }
+        .stat-title { font-size: 14px; color: var(--text-sec); font-weight: 800; margin-bottom: 8px; }
+        .stat-value { font-size: 26px; color: var(--text-main); font-weight: 800; margin: 0; }
+        .stat-value.red { color: #ef4444; }
+        .stat-value.green { color: #10b981; }
+        .stat-value.orange { color: #f59e0b; }
 
-        /* تنسيق الجداول والقوائم */
-        .students-grid { display: grid; gap: 15px; max-height: 500px; overflow-y: auto; padding-right: 5px; }
-        .student-item { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; background: #f9fafb; border: 1px solid #e5e7eb; padding: 15px; border-radius: 10px; gap: 10px;}
-        .student-item .info h4 { margin: 0 0 5px 0; color: #111827; }
-        .student-item .info p { margin: 0; font-size: 13px; color: #6b7280; }
-        .student-item .actions button { padding: 6px 12px; font-size: 13px; margin-right: 5px; }
-        
-        /* كروت الملاحظات */
-        .note-card { background: #fffbeb; border: 1px solid #fcd34d; padding: 15px; border-radius: 12px; margin-bottom: 15px; }
-        .note-card h4 { margin: 0 0 10px 0; color: #b45309; font-size: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #fde68a; padding-bottom: 10px;}
-        .btn-clear-note { background: #ef4444; color: white; border: none; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-family: 'Cairo'; font-size: 12px; }
+        .data-grid { display: grid; grid-template-columns: 1fr; gap: 20px; max-height: 65vh; overflow-y: auto; padding-right: 5px; padding-bottom: 20px;}
+        .item-card { background: var(--card-bg); border: 1px solid var(--border-color); padding: 25px; border-radius: 20px; display: flex; flex-direction: column; gap: 12px; transition: 0.3s;}
+        .item-card:hover { border-color: var(--primary); box-shadow: var(--shadow);}
+        .item-card h4 { margin: 0; color: var(--text-main); font-size: 18px; display: flex; justify-content: space-between; align-items: center; font-weight: 800;}
+        .item-card p { margin: 0; font-size: 15px; color: var(--text-sec); line-height: 1.6; font-weight: 600;}
+        .item-actions { display: flex; gap: 15px; border-top: 1px dashed var(--border-color); padding-top: 15px; margin-top: 5px;}
+        .item-actions button { flex: 1; font-size: 15px; padding: 12px;}
 
-        .msg { text-align: center; font-size: 14px; margin-bottom: 15px; font-weight: bold;}
-        .error { color: #dc2626; }
-        .success { color: #059669; }
+        .msg { text-align: center; font-size: 15px; font-weight: 800; margin: 15px 0;}
+        .error { color: #ef4444; }
+        .success { color: #10b981; }
         
-        #loginSection { max-width: 400px; margin: 0 auto; text-align: center; }
+        #loginSection { max-width: 480px; margin: 80px auto; text-align: center; }
         #adminDashboard { display: none; }
         
-        .dev-signature { text-align: center; margin-top: 10px; font-size: 14px; color: #6b7280; width: 100%;}
-        .dev-signature a { color: #25D366; text-decoration: none; font-weight: 700; transition: 0.3s; display: inline-flex; align-items: center; gap: 5px; }
+        .dev-signature { text-align: center; margin-top: 40px; font-size: 14px; color: var(--text-sec); font-weight: 600;}
+        .dev-signature a { color: #10b981; text-decoration: none; font-weight: 800; transition: 0.2s;}
+        .dev-signature a:hover { color: var(--primary); }
+
+        @media (min-width: 768px) {
+            .app-container { padding-top: 40px; }
+            .form-grid { grid-template-columns: 1fr 1fr; }
+            .data-grid { grid-template-columns: 1fr 1fr; }
+            .stats-grid { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));}
+            .header-left h2 { display: block; }
+        }
     </style>
 </head>
 <body>
+<script>
+    const savedTheme = localStorage.getItem('appTheme') || 'light';
+    document.body.setAttribute('data-theme', savedTheme);
+</script>
 
-<div class="container">
-    <div class="card">
+<!-- القائمة الجانبية المنزلقة -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleMenu()"></div>
+<div class="sidebar" id="slideMenu">
+    <div class="sidebar-header">
+        <h3>قائمة النظام</h3>
+        <button class="close-menu" onclick="toggleMenu()">✖</button>
+    </div>
+    <!-- التبويب الافتراضي الجديد: التحليل الشامل -->
+    <button class="menu-btn active" id="btn-dashboardTab" onclick="switchTab('dashboardTab'); fetchAllStudents(); toggleMenu();">📊 التحليل الشامل</button>
+    <button class="menu-btn" id="btn-addTab" onclick="switchTab('addTab'); toggleMenu();">📝 تسجيل / تحديث قيد</button>
+    <button class="menu-btn" id="btn-listTab" onclick="switchTab('listTab'); fetchAllStudents(); toggleMenu();">📋 السجل العام للطلاب</button>
+    <button class="menu-btn" id="btn-notesTab" onclick="switchTab('notesTab'); fetchAllStudents(); toggleMenu();" style="color:#d97706;">📩 صندوق الوارد</button>
+    <button class="menu-btn" id="btn-accountsTab" onclick="switchTab('accountsTab'); fetchAllAdmins(); toggleMenu();" style="color:#8b5cf6;">👥 صلاحيات النظام</button>
+    <button class="menu-btn" id="btn-settingsTab" onclick="switchTab('settingsTab'); toggleMenu();">⚙️ الإعدادات العامة</button>
+    
+    <div style="margin-top: auto;">
+        <button class="btn-danger" style="width: 100%; border:none; background:rgba(239, 68, 68, 0.1);" onclick="logout()">🚪 تسجيل الخروج</button>
+    </div>
+</div>
+
+<div class="app-container">
+    
+    <div class="card" id="loginSection">
+        <h2 style="color: var(--primary); margin-bottom: 30px; font-weight: 800; font-size: 26px;">بوابة الإدارة</h2>
+        <div class="input-group">
+            <input type="text" id="adminUser" placeholder=" ">
+            <label>اسم المستخدم</label>
+        </div>
+        <div class="input-group">
+            <input type="password" id="adminPass" placeholder=" ">
+            <label>كلمة المرور</label>
+        </div>
+        <button class="btn-main" onclick="adminLogin()" style="margin-top: 10px;">دخول آمن 🔒</button>
+        <div id="loginMsg" class="msg"></div>
+    </div>
+
+    <div id="adminDashboard">
         
-        <div id="loginSection">
-            <h2 style="color: var(--admin-primary); margin-bottom: 20px;">تسجيل الدخول للإدارة</h2>
-            <input type="text" id="adminUser" placeholder="اسم المستخدم">
-            <input type="password" id="adminPass" placeholder="كلمة المرور">
-            <button class="btn-main" onclick="adminLogin()">دخول</button>
-            <div id="loginMsg" class="msg" style="margin-top: 10px;"></div>
+        <div class="top-nav">
+            <div class="header-left">
+                <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+                <img id="adminLogoHeader" src="https://via.placeholder.com/50">
+                <h2>لوحة القيادة</h2>
+            </div>
+            <div class="top-nav-right">
+                <button class="theme-toggle" onclick="toggleTheme()" id="themeIcon" style="position:static;">☀️</button>
+            </div>
         </div>
 
-        <div id="adminDashboard">
-            <div class="header">
-                <h2><img id="adminLogoHeader" src="https://via.placeholder.com/40" alt="لوجو"> إدارة المعهد</h2>
-                <button class="logout-btn" onclick="logout()">خروج</button>
-            </div>
-
-            <div class="tabs">
-                <button class="tab-btn active" onclick="switchTab('addTab')" id="btn-addTab">طالب جديد / تعديل</button>
-                <button class="tab-btn" onclick="switchTab('listTab'); fetchAllStudents();" id="btn-listTab">سجل الطلاب</button>
-                <button class="tab-btn" onclick="switchTab('notesTab'); fetchAllStudents();" id="btn-notesTab" style="background:#f59e0b; color:white;">رسائل الأولياء 📩</button>
-                <button class="tab-btn" onclick="switchTab('accountsTab'); fetchAllAdmins();" id="btn-accountsTab" style="background:#8b5cf6; color:white;">الحسابات 👥</button>
-                <button class="tab-btn" onclick="switchTab('settingsTab')" id="btn-settingsTab" style="background:#3b82f6; color:white;">الإعدادات ⚙️</button>
-            </div>
-
-            <!-- 1. الإضافة والتعديل -->
-            <div id="addTab" class="tab-content active">
-                <div class="flex-row">
-                    <input type="text" id="studentRef" class="ref-input" readonly title="الرقم المرجعي (تلقائي)">
-                    <button class="btn-main" style="width: auto; padding: 0 20px;" onclick="prepareNewStudent()">طالب جديد ➕</button>
+        <!-- 0. التحليل الشامل (Dashboard) -->
+        <div id="dashboardTab" class="tab-content active">
+            <h3 class="card-title" style="border:none; font-size: 20px;">📊 الإحصائيات والتحليل الشامل</h3>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">🎓</div>
+                    <div class="stat-title">إجمالي الطلاب</div>
+                    <p class="stat-value" id="statTotalStudents">0</p>
                 </div>
+                <div class="stat-card">
+                    <div class="stat-icon">💰</div>
+                    <div class="stat-title">إجمالي الرسوم المتوقعة</div>
+                    <p class="stat-value" id="statTotalFees">0</p>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">✅</div>
+                    <div class="stat-title">الرصيد المحصل</div>
+                    <p class="stat-value green" id="statPaidFees">0</p>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⚠️</div>
+                    <div class="stat-title">الذمم المتبقية</div>
+                    <p class="stat-value red" id="statRemainingFees">0</p>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">📩</div>
+                    <div class="stat-title">رسائل واردة جديدة</div>
+                    <p class="stat-value orange" id="statUnreadNotes">0</p>
+                </div>
+            </div>
 
+            <!-- الزر المطلوب للانتقال لإضافة طالب -->
+            <button class="btn-main" onclick="prepareNewStudent()" style="padding: 20px; font-size: 18px; border-radius: 20px;">➕ تسجيل قيد طالب جديد</button>
+        </div>
+
+        <!-- 1. الإضافة والتحديث -->
+        <div id="addTab" class="tab-content">
+            <div class="card">
                 <div class="flex-row">
-                    <input type="text" id="studentName" placeholder="اسم الطالب الرباعي (مطلوب)">
-                    <input type="text" id="studentClass" placeholder="الصف / الشعبة (مثال: التاسع)">
+                    <div class="input-group" style="flex:2;">
+                        <input type="text" id="studentRef" class="ref-input" placeholder=" " readonly>
+                        <label>رقم القيد (ID)</label>
+                    </div>
+                    <button class="btn-main" style="flex:1; padding: 0;" onclick="prepareNewStudent()">تهيئة ➕</button>
+                </div>
+                <div class="form-grid">
+                    <div class="input-group">
+                        <input type="text" id="studentName" placeholder=" ">
+                        <label>اسم الطالب الرباعي (مطلوب)</label>
+                    </div>
+                    <div class="input-group">
+                        <input type="text" id="studentClass" placeholder=" ">
+                        <label>المرحلة الدراسية / الشعبة</label>
+                    </div>
+                </div>
+                <input type="file" id="studentPhoto" accept="image/*" style="border: 2px dashed var(--border-color); padding:15px; background: transparent; border-radius:16px;">
+                <label style="display:block; font-size:13px; color:var(--text-sec); margin-top:-10px;">* إرفاق صورة شخصية (اختياري)</label>
+            </div>
+
+            <div class="card form-grid">
+                <div>
+                    <h3 class="card-title">💰 السجل المالي للرسوم</h3>
+                    <div class="input-group">
+                        <input type="number" id="feeTotal" placeholder=" " oninput="calcFee()">
+                        <label>إجمالي الرسوم الدراسية</label>
+                    </div>
+                    <div class="input-group">
+                        <input type="number" id="feePaid" placeholder=" " oninput="calcFee()">
+                        <label>المبلغ المسدد</label>
+                    </div>
+                    <div class="input-group">
+                        <input type="number" id="feeRemaining" placeholder=" " readonly style="color:#ef4444; font-weight:bold;">
+                        <label>الرصيد المتبقي (تلقائي)</label>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="card-title">📅 متابعة الدوام</h3>
+                    <div class="input-group">
+                        <input type="number" id="daysPresent" placeholder=" ">
+                        <label>عدد أيام الحضور</label>
+                    </div>
+                    <div class="input-group">
+                        <input type="number" id="daysAbsent" placeholder=" ">
+                        <label>عدد أيام الغياب</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 class="card-title">📝 السجل الأكاديمي والملاحظات</h3>
+                <div class="input-group">
+                    <textarea id="studentInfo" rows="2" placeholder=" "></textarea>
+                    <label>البيانات الشخصية (تاريخ الميلاد، هواتف...)</label>
+                </div>
+                <div class="input-group">
+                    <textarea id="studentGrades" rows="2" placeholder=" "></textarea>
+                    <label>سجل النتائج والتقييم</label>
+                </div>
+                <div class="input-group">
+                    <textarea id="studentBehavior" rows="2" placeholder=" "></textarea>
+                    <label>التقييم الإداري والسلوك</label>
                 </div>
                 
-                <div class="section-title">الوضع المالي (الأقساط):</div>
-                <div class="flex-row">
-                    <input type="number" id="feeTotal" placeholder="القسط الإجمالي" oninput="calcFee()">
-                    <input type="number" id="feePaid" placeholder="المبلغ المدفوع" oninput="calcFee()">
-                    <input type="number" id="feeRemaining" placeholder="المتبقي (تلقائي)" readonly style="background:#e5e7eb; color:#dc2626; font-weight:bold;">
+                <div class="flex-row" style="margin-bottom:0;">
+                    <button class="btn-main" style="flex: 2;" onclick="saveStudent()">حفظ وتحديث السجل ✔️</button>
+                    <button class="btn-danger" style="flex: 1;" onclick="deleteStudentFromForm()">إلغاء القيد 🗑️</button>
                 </div>
-
-                <div class="section-title">سجل الحضور والغياب السريع:</div>
-                <div class="flex-row">
-                    <input type="number" id="daysPresent" placeholder="أيام الحضور">
-                    <input type="number" id="daysAbsent" placeholder="أيام الغياب">
-                </div>
-
-                <div class="section-title">صورة الطالب (اختياري - أقل من 1 ميغا):</div>
-                <input type="file" id="studentPhoto" accept="image/*">
-                
-                <textarea id="studentInfo" rows="2" placeholder="المعلومات الشخصية (العمر، الهاتف...)"></textarea>
-                <textarea id="studentGrades" rows="2" placeholder="العلامات والتقييم الأكاديمي"></textarea>
-                <textarea id="studentBehavior" rows="2" placeholder="ملاحظات الإدارة الإضافية"></textarea>
-                
-                <div class="flex-row">
-                    <button class="btn-main" style="flex: 2;" onclick="saveStudent()">حفظ البيانات ✔️</button>
-                    <button class="btn-danger" style="flex: 1;" onclick="deleteStudentFromForm()">حذف 🗑️</button>
-                </div>
-                <div id="saveMsg" class="msg"></div>
+                <div id="saveMsg" class="msg" style="margin-bottom:0; margin-top:15px;"></div>
             </div>
+        </div>
 
-            <!-- 2. قائمة الطلاب والفلاتر -->
-            <div id="listTab" class="tab-content">
-                <div class="flex-row">
-                    <input type="text" id="searchInput" oninput="filterStudents()" placeholder="🔍 ابحث بالاسم أو الرقم..." style="flex:2;">
-                    <select id="classFilter" onchange="filterStudents()" style="flex:1;">
-                        <option value="">كل الصفوف</option>
-                        <!-- سيتم تعبئتها برمجياً -->
-                    </select>
+        <!-- 2. السجل -->
+        <div id="listTab" class="tab-content">
+            <div class="card">
+                <div class="form-grid">
+                    <div class="input-group">
+                        <input type="text" id="searchInput" oninput="filterStudents()" placeholder=" ">
+                        <label>🔍 بحث بالاسم أو رقم القيد...</label>
+                    </div>
+                    <div class="input-group">
+                        <select id="classFilter" onchange="filterStudents()">
+                            <option value="">جميع المراحل الدراسية</option>
+                        </select>
+                        <label>تصفية حسب المرحلة</label>
+                    </div>
                 </div>
-                <div class="students-grid" id="studentsList"></div>
             </div>
+            <div class="data-grid" id="studentsList"></div>
+        </div>
 
-            <!-- 3. رسائل الأولياء -->
-            <div id="notesTab" class="tab-content">
-                <h3 style="color:#1f2937; margin-top:0;">الملاحظات الواردة من أولياء الأمور</h3>
-                <div id="notesListContainer" class="students-grid"></div>
-            </div>
+        <!-- 3. الرسائل -->
+        <div id="notesTab" class="tab-content">
+            <div class="data-grid" id="notesListContainer"></div>
+        </div>
 
-            <!-- 4. الحسابات -->
-            <div id="accountsTab" class="tab-content">
-                <h3 style="color:#1f2937; margin-top:0;">إضافة إداري جديد / تعديل</h3>
-                <div class="flex-row">
-                    <input type="text" id="newAdminUser" placeholder="اسم المستخدم">
-                    <input type="text" id="newAdminPass" placeholder="كلمة المرور">
+        <!-- 4. الحسابات -->
+        <div id="accountsTab" class="tab-content">
+            <div class="card">
+                <h3 class="card-title">منح صلاحية لإداري جديد</h3>
+                <div class="form-grid">
+                    <div class="input-group">
+                        <input type="text" id="newAdminUser" placeholder=" ">
+                        <label>اسم المستخدم (System ID)</label>
+                    </div>
+                    <div class="input-group">
+                        <input type="text" id="newAdminPass" placeholder=" ">
+                        <label>كلمة المرور</label>
+                    </div>
                 </div>
-                <button class="btn-main" onclick="saveAdminAccount()" style="background:#8b5cf6;">حفظ الحساب</button>
+                <button class="btn-main" onclick="saveAdminAccount()" style="background:#8b5cf6;">حفظ بيانات الحساب</button>
                 <div id="adminAccountMsg" class="msg"></div>
-                <hr style="margin:20px 0; border:1px solid #e5e7eb;">
-                <div class="students-grid" id="adminsListContainer"></div>
             </div>
+            <div class="data-grid" id="adminsListContainer"></div>
+        </div>
 
-            <!-- 5. الإعدادات والإعلانات -->
-            <div id="settingsTab" class="tab-content">
-                
-                <div style="background: #fef3c7; padding: 20px; border-radius: 10px; border: 1px solid #fbbf24; margin-bottom: 20px;">
-                    <label class="section-title">لوحة الإعلانات العامة (تظهر لجميع الأهالي):</label>
-                    <textarea id="generalAnnouncement" rows="2" placeholder="اكتب إعلاناً هاماً هنا (مثال: عطلة غداً)... اتركها فارغة لإلغاء الإعلان."></textarea>
-                    <button class="btn-main" onclick="saveSettings()" style="background:#f59e0b;">نشر الإعلان 📢</button>
+        <!-- 5. الإعدادات -->
+        <div id="settingsTab" class="tab-content">
+            <div class="card" style="border: 1px solid #f59e0b;">
+                <h3 class="card-title" style="color:#d97706; border-color:rgba(245, 158, 11, 0.2);">📢 تعميم إعلان لأولياء الأمور</h3>
+                <div class="input-group">
+                    <textarea id="generalAnnouncement" rows="2" placeholder=" "></textarea>
+                    <label>اكتب نص التعميم هنا...</label>
                 </div>
-
-                <div style="background: #f9fafb; padding: 20px; border-radius: 10px; border: 1px solid #e5e7eb; text-align: center;">
-                    <img id="logoPreview" src="https://via.placeholder.com/100" style="width:100px; height:100px; border-radius:50%; margin-bottom:15px; object-fit:cover; border:3px solid var(--admin-primary);">
-                    <label class="section-title" style="display:block; margin-bottom: 10px;">تغيير لوجو المعهد:</label>
-                    <input type="file" id="siteLogoInput" accept="image/*" style="background:white;">
-                    <button class="btn-main" onclick="saveSettings()" style="background:#3b82f6;">حفظ اللوجو وتحديث الموقع</button>
-                </div>
+                <button class="btn-main" onclick="saveSettings()" style="background:#f59e0b;">نشر التعميم</button>
+            </div>
+            <div class="card" style="text-align: center;">
+                <h3 class="card-title">تحديث الهوية البصرية (اللوجو)</h3>
+                <img id="logoPreview" src="https://via.placeholder.com/100" style="width:120px; height:120px; border-radius:50%; margin-bottom:20px; object-fit:cover; border:4px solid var(--primary); box-shadow: 0 8px 20px rgba(0,0,0,0.1);">
+                <input type="file" id="siteLogoInput" accept="image/*" style="padding:15px; border:2px dashed var(--border-color); background:transparent; border-radius: 16px;">
+                <button class="btn-main" onclick="saveSettings()">اعتماد الشعار</button>
                 <div id="settingsMsg" class="msg"></div>
             </div>
-
         </div>
+
     </div>
     
     <div class="dev-signature">
-        برمجة وتصميم: <a href="https://wa.me/963954571163" target="_blank">محمود مغلاج 💬</a>
+        تطوير وتصميم: <a href="https://wa.me/963954571163" target="_blank">م. محمود مغلاج 💬</a>
     </div>
 </div>
 
 <script>
+    function toggleTheme() {
+        const current = document.body.getAttribute('data-theme');
+        const next = current === 'dark' ? 'light' : 'dark';
+        document.body.setAttribute('data-theme', next);
+        localStorage.setItem('appTheme', next);
+        document.getElementById('themeIcon').innerText = next === 'dark' ? '🌙' : '☀️';
+    }
+    document.getElementById('themeIcon').innerText = savedTheme === 'dark' ? '🌙' : '☀️';
+
+    function toggleMenu() {
+        document.getElementById('slideMenu').classList.toggle('active');
+        document.getElementById('sidebarOverlay').classList.toggle('active');
+    }
+
     const firebaseConfig = {
         apiKey: "AIzaSyCyM09CRmdPMK1uPUvBcMpp5BgvOITknlk",
         authDomain: "cafemood-c9196.firebaseapp.com",
@@ -200,78 +392,85 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
+    let currentPhotoUrl = ""; let allStudentsData = []; 
 
-    let currentPhotoUrl = ""; 
-    let allStudentsData = []; 
+    window.onload = () => { if(localStorage.getItem('adminLoggedIn') === 'true') { loginSuccess(); } };
 
-    // حساب المتبقي من القسط فورياً
     function calcFee() {
         const total = Number(document.getElementById('feeTotal').value) || 0;
         const paid = Number(document.getElementById('feePaid').value) || 0;
         document.getElementById('feeRemaining').value = (total - paid) > 0 ? (total - paid) : 0;
     }
 
-    // جلب الإعدادات
     function loadSettings() {
         db.collection("settings").doc("general").get().then((doc) => {
             if(doc.exists) {
                 const data = doc.data();
-                if(data.logoUrl) {
-                    document.getElementById('adminLogoHeader').src = data.logoUrl;
-                    document.getElementById('logoPreview').src = data.logoUrl;
-                }
-                if(data.announcement) {
-                    document.getElementById('generalAnnouncement').value = data.announcement;
-                }
+                if(data.logoUrl) { document.getElementById('adminLogoHeader').src = data.logoUrl; document.getElementById('logoPreview').src = data.logoUrl; }
+                if(data.announcement) document.getElementById('generalAnnouncement').value = data.announcement;
             }
         });
     }
 
     function switchTab(tabId) {
         document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.menu-btn').forEach(el => el.classList.remove('active'));
         document.getElementById(tabId).classList.add('active');
         document.getElementById('btn-' + tabId).classList.add('active');
     }
 
     function adminLogin() {
-        const user = document.getElementById('adminUser').value.trim();
-        const pass = document.getElementById('adminPass').value.trim();
+        const user = document.getElementById('adminUser').value.trim(); const pass = document.getElementById('adminPass').value.trim();
         const msgDiv = document.getElementById('loginMsg');
-        if (!user || !pass) { msgDiv.className = "msg error"; msgDiv.innerText = "الرجاء إدخال البيانات!"; return; }
-
-        msgDiv.className = "msg"; msgDiv.style.color = "#3b82f6"; msgDiv.innerText = "جاري التحقق...";
-
+        if (!user || !pass) { msgDiv.className = "msg error"; msgDiv.innerText = "يرجى إدخال بيانات الاعتماد."; return; }
+        msgDiv.className = "msg"; msgDiv.style.color = "var(--primary)"; msgDiv.innerText = "جاري المصادقة...";
         db.collection("admins").doc(user).get().then(doc => {
-            if (doc.exists && doc.data().password === pass) { loginSuccess(); } 
+            if (doc.exists && doc.data().password === pass) { localStorage.setItem('adminLoggedIn', 'true'); loginSuccess(); } 
             else {
                 db.collection("admins").limit(1).get().then(snapshot => {
-                    if (snapshot.empty && user === "admin" && pass === "123456") { loginSuccess(); } 
-                    else { msgDiv.className = "msg error"; msgDiv.innerText = "خطأ في البيانات!"; }
+                    if (snapshot.empty && user === "admin" && pass === "123456") { localStorage.setItem('adminLoggedIn', 'true'); loginSuccess(); } 
+                    else { msgDiv.className = "msg error"; msgDiv.innerText = "فشل المصادقة."; }
                 });
             }
         });
     }
 
     function loginSuccess() {
-        document.getElementById('loginSection').style.display = 'none';
+        document.getElementById('loginSection').style.display = 'none'; 
         document.getElementById('adminDashboard').style.display = 'block';
-        loadSettings();
-        prepareNewStudent();
+        loadSettings(); 
+        fetchAllStudents(); // لتهيئة الإحصائيات
+        switchTab('dashboardTab'); // فتح لوحة التحليل الشامل كواجهة أولية
+    }
+    
+    function logout() { localStorage.removeItem('adminLoggedIn'); location.reload(); }
+
+    // --- قسم الإحصائيات والتحليل (Dashboard) ---
+    function updateDashboardStats() {
+        let tStudents = allStudentsData.length;
+        let tFees = 0, tPaid = 0, unread = 0;
+        
+        allStudentsData.forEach(s => {
+            tFees += Number(s.feeTotal) || 0;
+            tPaid += Number(s.feePaid) || 0;
+            if(s.parentNote) unread++;
+        });
+        
+        let tRemaining = tFees - tPaid;
+        
+        document.getElementById('statTotalStudents').innerText = tStudents.toLocaleString('ar-EG');
+        document.getElementById('statTotalFees').innerText = tFees.toLocaleString('ar-EG');
+        document.getElementById('statPaidFees').innerText = tPaid.toLocaleString('ar-EG');
+        document.getElementById('statRemainingFees').innerText = tRemaining.toLocaleString('ar-EG');
+        document.getElementById('statUnreadNotes').innerText = unread.toLocaleString('ar-EG');
     }
 
-    function logout() { location.reload(); } // أسهل طريقة للخروج وتصفير البيانات
-
-    // إدارة الحسابات
     function saveAdminAccount() {
-        const u = document.getElementById('newAdminUser').value.trim();
-        const p = document.getElementById('newAdminPass').value.trim();
-        const msgDiv = document.getElementById('adminAccountMsg');
+        const u = document.getElementById('newAdminUser').value.trim(); const p = document.getElementById('newAdminPass').value.trim();
         if(!u || !p) return;
         db.collection("admins").doc(u).set({ username: u, password: p }).then(() => {
-            msgDiv.className='msg success'; msgDiv.innerText='تم الحفظ!';
-            document.getElementById('newAdminUser').value = ''; document.getElementById('newAdminPass').value = '';
-            fetchAllAdmins();
+            document.getElementById('adminAccountMsg').className='msg success'; document.getElementById('adminAccountMsg').innerText='تم حفظ الصلاحيات!';
+            document.getElementById('newAdminUser').value = ''; document.getElementById('newAdminPass').value = ''; fetchAllAdmins();
         });
     }
 
@@ -282,20 +481,20 @@
             snapshot.forEach(doc => {
                 const data = doc.data();
                 listDiv.innerHTML += `
-                    <div class="student-item">
-                        <div class="info"><h4 style="color:#8b5cf6;">👤 ${data.username}</h4><p>المرور: ${data.password}</p></div>
-                        <button class="btn-danger" style="width:auto;" onclick="deleteAdmin('${doc.id}')">حذف 🗑️</button>
+                    <div class="item-card">
+                        <div><h4 style="color:var(--primary); font-size:18px;">👤 ${data.username}</h4><p>الرمز السري: <span style="color:var(--text-main); font-weight:700;">${data.password}</span></p></div>
+                        <div class="item-actions"><button class="btn-danger" onclick="deleteAdmin('${doc.id}')">إلغاء الصلاحية</button></div>
                     </div>`;
             });
         });
     }
-    function deleteAdmin(id) { if(confirm("حذف الإداري؟")) db.collection("admins").doc(id).delete().then(fetchAllAdmins); }
+    function deleteAdmin(id) { if(confirm("هل أنت متأكد من إلغاء صلاحية هذا الإداري؟")) db.collection("admins").doc(id).delete().then(fetchAllAdmins); }
 
-    // تحضير طالب
+    // زر الإضافة العائم في التحليل الشامل ينادي هذه الدالة
     function prepareNewStudent() {
         document.getElementById('studentRef').value = Math.floor(100000 + Math.random() * 900000);
         document.querySelectorAll('#addTab input:not(.ref-input), #addTab textarea').forEach(el => el.value = '');
-        currentPhotoUrl = ""; document.getElementById('saveMsg').innerText = '';
+        currentPhotoUrl = ""; document.getElementById('saveMsg').innerText = ''; 
         switchTab('addTab');
     }
 
@@ -311,87 +510,77 @@
         const ann = document.getElementById('generalAnnouncement').value.trim();
         const msgDiv = document.getElementById('settingsMsg');
         msgDiv.className='msg'; msgDiv.innerText="جاري الحفظ...";
-        
         let updateData = { announcement: ann };
         try {
             if(file) {
-                if(file.size > 800000) { msgDiv.className='msg error'; msgDiv.innerText="اللوجو كبير جداً."; return;}
+                if(file.size > 800000) { msgDiv.className='msg error'; msgDiv.innerText="حجم الصورة كبير جداً."; return;}
                 updateData.logoUrl = await getBase64(file);
-                document.getElementById('adminLogoHeader').src = updateData.logoUrl;
-                document.getElementById('logoPreview').src = updateData.logoUrl;
+                document.getElementById('adminLogoHeader').src = updateData.logoUrl; document.getElementById('logoPreview').src = updateData.logoUrl;
             }
             await db.collection("settings").doc("general").set(updateData, {merge:true});
             document.getElementById('siteLogoInput').value = '';
-            msgDiv.className='msg success'; msgDiv.innerText="تم حفظ الإعدادات بنجاح!";
+            msgDiv.className='msg success'; msgDiv.innerText="تم تحديث إعدادات النظام بنجاح!";
         } catch(e) { msgDiv.className='msg error'; msgDiv.innerText="خطأ: " + e.message; }
     }
 
     async function saveStudent() {
         const ref = document.getElementById('studentRef').value.trim();
         const name = document.getElementById('studentName').value.trim();
-        const sClass = document.getElementById('studentClass').value.trim();
         const msgDiv = document.getElementById('saveMsg');
-        if (!name) { msgDiv.className = 'msg error'; msgDiv.innerText = "الاسم مطلوب!"; return; }
+        if (!name) { msgDiv.className = 'msg error'; msgDiv.innerText = "اسم الطالب إجباري لإتمام التسجيل."; return; }
 
         msgDiv.className = 'msg'; msgDiv.innerText = "جاري الحفظ...";
-        let finalPhotoUrl = currentPhotoUrl; 
-        const file = document.getElementById('studentPhoto').files[0];
+        let finalPhotoUrl = currentPhotoUrl; const file = document.getElementById('studentPhoto').files[0];
 
         try {
             if (file) {
-                if (file.size > 1000000) { msgDiv.className = 'msg error'; msgDiv.innerText = "الصورة كبيرة."; return; }
+                if (file.size > 1000000) { msgDiv.className = 'msg error'; msgDiv.innerText = "حجم الصورة كبير جداً."; return; }
                 finalPhotoUrl = await getBase64(file);
             }
-
             await db.collection("students").doc(ref).set({
-                name: name, studentClass: sClass, 
-                info: document.getElementById('studentInfo').value.trim(), 
-                grades: document.getElementById('studentGrades').value.trim(), 
-                behavior: document.getElementById('studentBehavior').value.trim(),
-                feeTotal: document.getElementById('feeTotal').value,
-                feePaid: document.getElementById('feePaid').value,
-                daysPresent: document.getElementById('daysPresent').value,
-                daysAbsent: document.getElementById('daysAbsent').value,
-                photoUrl: finalPhotoUrl, updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                name: name, studentClass: document.getElementById('studentClass').value.trim(), 
+                info: document.getElementById('studentInfo').value.trim(), grades: document.getElementById('studentGrades').value.trim(), 
+                behavior: document.getElementById('studentBehavior').value.trim(), feeTotal: document.getElementById('feeTotal').value, 
+                feePaid: document.getElementById('feePaid').value, daysPresent: document.getElementById('daysPresent').value, 
+                daysAbsent: document.getElementById('daysAbsent').value, photoUrl: finalPhotoUrl, updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             }, { merge: true }); 
 
-            msgDiv.className = 'msg success'; msgDiv.innerText = "تم الحفظ!";
-            fetchAllStudents(); setTimeout(prepareNewStudent, 1500); 
-        } catch (e) { msgDiv.className = 'msg error'; msgDiv.innerText = "خطأ: " + e.message; }
+            msgDiv.className = 'msg success'; msgDiv.innerText = "تم حفظ السجل بنجاح!";
+            fetchAllStudents(); 
+            // بعد الحفظ نرجع لصفحة الإحصائيات (أو تجهيز طالب جديد حسب رغبتك)
+            setTimeout(() => { switchTab('dashboardTab'); }, 1500); 
+        } catch (e) { msgDiv.className = 'msg error'; msgDiv.innerText = "حدث خطأ: " + e.message; }
     }
 
     async function fetchAllStudents() {
         db.collection("students").get().then(snapshot => {
             allStudentsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            
-            // تعبئة فلتر الصفوف
             const classes = [...new Set(allStudentsData.map(s => s.studentClass).filter(Boolean))];
             const filterSel = document.getElementById('classFilter');
-            filterSel.innerHTML = '<option value="">كل الصفوف</option>' + classes.map(c => `<option value="${c}">${c}</option>`).join('');
+            filterSel.innerHTML = '<option value="">جميع المراحل الدراسية</option>' + classes.map(c => `<option value="${c}">${c}</option>`).join('');
             
-            filterStudents();
+            updateDashboardStats(); // تحديث أرقام الإحصائيات
+            filterStudents(); 
             renderParentNotes();
         });
     }
 
     function renderStudentsList(arr) {
         const list = document.getElementById('studentsList'); list.innerHTML = '';
-        if(arr.length === 0) { list.innerHTML = `<p style="text-align: center; color: #6b7280;">لا يوجد طلاب.</p>`; return; }
+        if(arr.length === 0) { list.innerHTML = `<p style="text-align: center; color: var(--text-sec); width:100%;">لا توجد قيود مسجلة.</p>`; return; }
         
         arr.forEach(s => {
-            const noteIcon = s.parentNote ? `<span title="رسالة جديدة" style="background:#fde68a; font-size:11px; padding:2px 5px; border-radius:4px;">📩 رسالة</span>` : '';
+            const noteIcon = s.parentNote ? `📩` : '';
             const remain = (Number(s.feeTotal)||0) - (Number(s.feePaid)||0);
-            const feeStatus = remain > 0 ? `<span style="color:#ef4444; font-size:12px;">(ذمة: ${remain})</span>` : `<span style="color:#10b981; font-size:12px;">(خالص)</span>`;
+            const feeStatus = remain > 0 ? `<span style="color:#ef4444;">ذمة مالية: ${remain}</span>` : `<span style="color:var(--primary);">الرصيد خالص</span>`;
             
             list.innerHTML += `
-                <div class="student-item">
-                    <div class="info">
-                        <h4>${s.name} ${noteIcon}</h4>
-                        <p>الرقم: <strong>${s.id}</strong> | الصف: ${s.studentClass || 'غير محدد'} ${feeStatus}</p>
+                <div class="item-card">
+                    <div>
+                        <h4>${s.name} <span style="font-size:14px;">${noteIcon}</span></h4>
+                        <p>ID: <span style="color:var(--text-main); font-weight:700;">${s.id}</span> | ${s.studentClass || 'المرحلة غير محددة'}<br>${feeStatus}</p>
                     </div>
-                    <div class="actions">
-                        <button class="btn-main" style="width:auto;" onclick="editStudentFromList('${s.id}')">تعديل ✏️</button>
-                    </div>
+                    <div class="item-actions"><button class="btn-main" onclick="editStudentFromList('${s.id}')">تحديث السجل ✏️</button></div>
                 </div>`;
         });
     }
@@ -399,12 +588,13 @@
     function renderParentNotes() {
         const notesDiv = document.getElementById('notesListContainer'); notesDiv.innerHTML = '';
         const withNotes = allStudentsData.filter(s => s.parentNote);
-        if (withNotes.length === 0) { notesDiv.innerHTML = '<p style="text-align:center; color:#6b7280;">لا توجد رسائل.</p>'; return; }
+        if (withNotes.length === 0) { notesDiv.innerHTML = '<p style="text-align:center; color:var(--text-sec); width:100%;">صندوق الوارد فارغ.</p>'; return; }
         withNotes.forEach(s => {
             notesDiv.innerHTML += `
-                <div class="note-card">
-                    <h4><span>${s.name} (رقم: ${s.id})</span><button class="btn-clear-note" onclick="clearNoteFromTab('${s.id}')">مسح ✔️</button></h4>
-                    <p>💬 "${s.parentNote}"</p>
+                <div class="item-card" style="border-color:#f59e0b;">
+                    <div><h4 style="color:#d97706;">${s.name} <span style="font-size:13px; color:var(--text-sec);">(ID: ${s.id})</span></h4>
+                    <p style="color:var(--text-main); font-size:16px; margin-top:8px;">💬 "${s.parentNote}"</p></div>
+                    <div class="item-actions"><button class="btn-danger" style="background:#f59e0b; color:white; border:none;" onclick="clearNoteFromTab('${s.id}')">تحديد كمقروء ✔️</button></div>
                 </div>`;
         });
     }
@@ -423,29 +613,20 @@
     function editStudentFromList(refId) {
         const s = allStudentsData.find(x => x.id === refId);
         if(s) {
-            document.getElementById('studentRef').value = s.id;
-            document.getElementById('studentName').value = s.name || '';
-            document.getElementById('studentClass').value = s.studentClass || '';
-            document.getElementById('feeTotal').value = s.feeTotal || '';
-            document.getElementById('feePaid').value = s.feePaid || '';
-            document.getElementById('daysPresent').value = s.daysPresent || '';
-            document.getElementById('daysAbsent').value = s.daysAbsent || '';
-            document.getElementById('studentInfo').value = s.info || '';
-            document.getElementById('studentGrades').value = s.grades || '';
-            document.getElementById('studentBehavior').value = s.behavior || '';
-            document.getElementById('studentPhoto').value = ''; 
-            currentPhotoUrl = s.photoUrl || ""; 
-            calcFee(); // حساب المتبقي للفورم
-            switchTab('addTab'); 
+            document.getElementById('studentRef').value = s.id; document.getElementById('studentName').value = s.name || '';
+            document.getElementById('studentClass').value = s.studentClass || ''; document.getElementById('feeTotal').value = s.feeTotal || '';
+            document.getElementById('feePaid').value = s.feePaid || ''; document.getElementById('daysPresent').value = s.daysPresent || '';
+            document.getElementById('daysAbsent').value = s.daysAbsent || ''; document.getElementById('studentInfo').value = s.info || '';
+            document.getElementById('studentGrades').value = s.grades || ''; document.getElementById('studentBehavior').value = s.behavior || '';
+            document.getElementById('studentPhoto').value = ''; currentPhotoUrl = s.photoUrl || ""; calcFee(); switchTab('addTab'); 
         }
     }
 
     function clearNoteFromTab(refId) { db.collection("students").doc(refId).update({ parentNote: firebase.firestore.FieldValue.delete() }).then(fetchAllStudents); }
     function deleteStudentFromForm() {
         const refId = document.getElementById('studentRef').value;
-        if(confirm("حذف الطالب نهائياً؟")) db.collection("students").doc(refId).delete().then(() => { setTimeout(prepareNewStudent, 1000); });
+        if(confirm("هل أنت متأكد من إلغاء قيد هذا الطالب نهائياً؟")) db.collection("students").doc(refId).delete().then(() => { fetchAllStudents(); switchTab('dashboardTab'); });
     }
 </script>
-
 </body>
 </html>
